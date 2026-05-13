@@ -26,8 +26,8 @@ export default function Dashboard({ rows }: Props) {
 
   const resetFilters = () => router.push("?", { scroll: false });
 
-  const [showDivision, setShowDivision] = useState(true);
-  const [showService,  setShowService]  = useState(true);
+  const [showDivision, setShowDivision] = useState(false);
+  const [showService,  setShowService]  = useState(false);
   const [showCustomer, setShowCustomer] = useState(false);
 
   // URL 쿼리스트링에서 현재 필터 값 읽기
@@ -106,38 +106,40 @@ export default function Dashboard({ rows }: Props) {
           className="rounded-2xl border"
           style={{ borderColor: "rgba(255,255,255,0.05)", background: "#1C1E2E" }}
         >
-          {/* 시간 필터 헤더 (초기화 버튼 포함) */}
+          {/* 헤더 (기간 라벨 + 초기화 버튼) */}
           <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>
-              필터
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
+              기간
             </span>
-            {hasAnyFilter && (
-              <button
-                onClick={resetFilters}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200"
-                style={{
-                  background: "rgba(255,255,255,0.06)",
-                  color: "rgba(255,255,255,0.45)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,74,0.15)";
-                  (e.currentTarget as HTMLButtonElement).style.color = "#FF6B4A";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,74,0.3)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
-                  (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.45)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)";
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                  <path d="M3 3v5h5" />
-                </svg>
-                초기화
-              </button>
-            )}
+            <button
+              onClick={resetFilters}
+              disabled={!hasAnyFilter}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200"
+              style={{
+                background: hasAnyFilter ? "rgba(255,255,255,0.06)" : "transparent",
+                color: hasAnyFilter ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.2)",
+                border: `1px solid ${hasAnyFilter ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.06)"}`,
+                cursor: hasAnyFilter ? "pointer" : "default",
+              }}
+              onMouseEnter={(e) => {
+                if (!hasAnyFilter) return;
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,107,74,0.15)";
+                (e.currentTarget as HTMLButtonElement).style.color = "#FF6B4A";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,107,74,0.4)";
+              }}
+              onMouseLeave={(e) => {
+                if (!hasAnyFilter) return;
+                (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+                (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.55)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.15)";
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              초기화
+            </button>
           </div>
 
           {/* 시간 필터 (연도 · 월) */}
@@ -173,7 +175,7 @@ export default function Dashboard({ rows }: Props) {
                 <button
                   onClick={() => setShow((v) => !v)}
                   className="flex items-center gap-1.5 py-1 text-xs font-semibold transition-colors duration-200"
-                  style={{ color: show ? "#00CFAA" : "rgba(255,255,255,0.55)" }}
+                  style={{ color: show ? "#00CFAA" : "rgba(255,255,255,0.75)" }}
                 >
                   <svg
                     width="11" height="11" viewBox="0 0 24 24" fill="none"
