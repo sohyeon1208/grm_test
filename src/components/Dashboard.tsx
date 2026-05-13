@@ -26,6 +26,8 @@ export default function Dashboard({ rows }: Props) {
 
   const resetFilters = () => router.push("?", { scroll: false });
 
+  const [showDivision, setShowDivision] = useState(false);
+  const [showService,  setShowService]  = useState(false);
   const [showCustomer, setShowCustomer] = useState(false);
 
   // URL 쿼리스트링에서 현재 필터 값 읽기
@@ -155,53 +157,38 @@ export default function Dashboard({ rows }: Props) {
           {/* 구분선 */}
           <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
 
-          {/* 비즈니스 필터 (사업부문 · 서비스 · 고객사) */}
+          {/* 비즈니스 필터 (사업부문 · 서비스 · 고객사) — 각각 토글 */}
           <div
-            className="px-4 pt-3 pb-4 flex flex-col gap-3"
+            className="px-4 pt-3 pb-4 flex flex-col gap-2"
             style={{ background: "#1C1E2E" }}
           >
-            <FilterRow
-              label="사업부문"
-              paramKey="division"
-              options={data.filterOptions.divisions}
-            />
-            <FilterRow
-              label="서비스"
-              paramKey="service"
-              options={data.filterOptions.services}
-            />
-
-            {/* 고객사 토글 */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowCustomer((v) => !v)}
-                className="flex items-center gap-1.5 text-xs font-medium min-w-[4rem] justify-end transition-colors duration-200"
-                style={{ color: showCustomer ? "#00CFAA" : "rgba(255,255,255,0.3)" }}
-              >
-                고객사
-                <svg
-                  width="12" height="12" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                  style={{ transform: showCustomer ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+            {[
+              { label: "사업부문", show: showDivision, setShow: setShowDivision, paramKey: "division", options: data.filterOptions.divisions },
+              { label: "서비스",   show: showService,  setShow: setShowService,  paramKey: "service",  options: data.filterOptions.services  },
+              { label: "고객사",   show: showCustomer, setShow: setShowCustomer, paramKey: "customer", options: data.filterOptions.customers  },
+            ].map(({ label, show, setShow, paramKey, options }) => (
+              <div key={paramKey}>
+                <button
+                  onClick={() => setShow((v) => !v)}
+                  className="flex items-center gap-1.5 py-1 text-xs font-semibold transition-colors duration-200"
+                  style={{ color: show ? "#00CFAA" : "rgba(255,255,255,0.55)" }}
                 >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-              {!showCustomer && (
-                <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
-                  클릭하여 고객사 필터 열기
-                </span>
-              )}
-            </div>
-            {showCustomer && (
-              <div className="pl-[4.75rem]">
-                <FilterRow
-                  label=""
-                  paramKey="customer"
-                  options={data.filterOptions.customers}
-                />
+                  <svg
+                    width="11" height="11" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ transform: show ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.2s" }}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                  {label}
+                </button>
+                {show && (
+                  <div className="mt-1.5 pl-4">
+                    <FilterRow label="" paramKey={paramKey} options={options} />
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
         </div>
       </div>

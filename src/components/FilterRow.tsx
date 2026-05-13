@@ -49,7 +49,7 @@ export default function FilterRow({ label, paramKey, options, formatLabel }: Pro
     <div className="flex items-start gap-3">
       <span
         className="text-xs font-medium mt-1.5 min-w-[4rem] text-right flex-shrink-0"
-        style={{ color: "rgba(255,255,255,0.3)" }}
+        style={{ color: "rgba(255,255,255,0.55)" }}
       >
         {label}
       </span>
