@@ -141,7 +141,7 @@ export default function Dashboard({ rows }: Props) {
       </div>
 
       {/* ── KPI Cards ── */}
-      <div className={`grid gap-4 mb-6 ${hasTimeFilter ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-2 lg:grid-cols-4"}`}>
+      <div className={`grid gap-4 mb-6 ${hasTimeFilter ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-2 lg:grid-cols-4 xl:grid-cols-7"}`}>
         <KpiCard label="총 매출" value={formatKRW(data.totalRevenue)} />
         <KpiCard
           label="총 거래 수"
@@ -167,14 +167,34 @@ export default function Dashboard({ rows }: Props) {
             />
           </>
         ) : (
-          /* 연도/월 미선택 시: 전년 동기 대비 (연평균 성장률) */
-          <KpiCard
-            label="연평균 성장률"
-            value={`${data.cagrRate >= 0 ? "+" : ""}${data.cagrRate.toFixed(1)}%`}
-            trend={cagrTrend}
-            trendValue="전년 동기 대비"
-            tooltip={`전년 동기 대비 계산 방식\n\n데이터 기준 최신 월까지의 기간을\n전년 동일 기간과 비교합니다.\n\n예) 2026년 1~5월 합계\n   vs 2025년 1~5월 합계`}
-          />
+          <>
+            {/* 연평균 성장률 */}
+            <KpiCard
+              label="연평균 성장률"
+              value={`${data.cagrRate >= 0 ? "+" : ""}${data.cagrRate.toFixed(1)}%`}
+              trend={cagrTrend}
+              trendValue="전년 동기 대비"
+              tooltip={`전년 동기 대비 계산 방식\n\n최신 연도의 최신 월까지를\n전년 동일 기간 합계와 비교합니다.\n\n예) 2026년 1~5월 합계\n   vs 2025년 1~5월 합계`}
+            />
+            {/* 활성 거래처 수 */}
+            <KpiCard
+              label="활성 거래처 수"
+              value={`${data.activeCustomers.toLocaleString("ko-KR")}개사`}
+            />
+            {/* 최고 매출 월 */}
+            <KpiCard
+              label="최고 매출 월"
+              value={data.peakMonth}
+            />
+            {/* 월평균 성장률 */}
+            <KpiCard
+              label="월평균 성장률"
+              value={`${data.avgMoMRate >= 0 ? "+" : ""}${data.avgMoMRate.toFixed(1)}%`}
+              trend={data.avgMoMRate > 0 ? "positive" : data.avgMoMRate < 0 ? "negative" : "neutral"}
+              trendValue="월평균 MoM"
+              tooltip={`월평균 성장률 계산 방식\n\n연속된 두 달의 증감률을 구한 뒤\n전체 평균을 냅니다.\n\n예) +20%, -25%, +67% → 평균 +20.7%`}
+            />
+          </>
         )}
       </div>
 

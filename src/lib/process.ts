@@ -24,6 +24,9 @@ export type DashboardData = {
   growthRate: number;
   yoyRate: number;
   cagrRate: number;
+  activeCustomers: number;
+  peakMonth: string;
+  avgMoMRate: number;
   periodLabel: string;
   monthlyData: MonthlyPoint[];
   channelData: ChannelPoint[];
@@ -116,6 +119,25 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
       .filter((r) => r.연도 === targetYear - 1 && r.월 <= maxMonth)
       .reduce((s, r) => s + r.매출액, 0);
     cagrRate = lastYearRev > 0 ? ((thisYearRev - lastYearRev) / lastYearRev) * 100 : 0;
+  }
+
+  // 활성 거래처 수
+  const activeCustomers = new Set(filtered.map((r) => r.거래처).filter(Boolean)).size;
+
+  // 최고 매출 월
+  const peakMonth = monthlyData.length > 0
+    ? monthlyData.reduce((best, cur) => cur.revenue > best.revenue ? cur : best).label
+    : "—";
+
+  // 월평균 성장률 (평균 MoM)
+  let avgMoMRate = 0;
+  if (monthlyData.length >= 2) {
+    const rates: number[] = [];
+    for (let i = 1; i < monthlyData.length; i++) {
+      const prev = monthlyData[i - 1].revenue;
+      if (prev > 0) rates.push(((monthlyData[i].revenue - prev) / prev) * 100);
+    }
+    avgMoMRate = rates.length > 0 ? rates.reduce((s, r) => s + r, 0) / rates.length : 0;
   }
 
   // YoY growth rate (전년 동월/동기 대비)
@@ -257,6 +279,9 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
     growthRate,
     yoyRate,
     cagrRate,
+    activeCustomers,
+    peakMonth,
+    avgMoMRate,
     periodLabel,
     monthlyData,
     channelData,
