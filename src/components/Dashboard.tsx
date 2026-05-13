@@ -40,8 +40,8 @@ export default function Dashboard({ rows }: Props) {
   const cagrTrend =
     data.cagrRate > 0 ? "positive" : data.cagrRate < 0 ? "negative" : "neutral";
 
-  // 월 필터 선택 여부 (연도만 선택은 CAGR 표시)
-  const hasTimeFilter = !!month;
+  const hasTimeFilter = !!month;   // 월 선택
+  const isYearOnly    = !!year && !month; // 연도 선택, 월 전체
 
   // 활성 필터 배지
   const activeFilters = [
@@ -141,8 +141,7 @@ export default function Dashboard({ rows }: Props) {
       </div>
 
       {/* ── KPI Cards ── */}
-      <div className={`grid gap-4 mb-6 ${hasTimeFilter ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-2 lg:grid-cols-5"}`}>
-        {/* 공통 카드 */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <KpiCard label="총 매출" value={formatKRW(data.totalRevenue)} />
         <KpiCard
           label="총 거래 수"
@@ -150,6 +149,7 @@ export default function Dashboard({ rows }: Props) {
         />
 
         {hasTimeFilter ? (
+          /* ── 월 선택: 월 평균 매출 · 전월 대비 · 전년 동월 대비 ── */
           <>
             <KpiCard label="월 평균 매출" value={formatKRW(data.monthlyAvg)} />
             <KpiCard
@@ -165,7 +165,27 @@ export default function Dashboard({ rows }: Props) {
               trendValue="전년 동월 대비"
             />
           </>
+        ) : isYearOnly ? (
+          /* ── 연도 선택 / 월 전체: 활성 거래처 수 · 최고 매출 월 · 연평균 성장률(전년 동기) ── */
+          <>
+            <KpiCard
+              label="활성 거래처 수"
+              value={`${data.activeCustomers.toLocaleString("ko-KR")}개사`}
+            />
+            <KpiCard
+              label="최고 매출 월"
+              value={data.peakMonth}
+            />
+            <KpiCard
+              label="연평균 성장률"
+              value={`${data.yoyPeriodRate >= 0 ? "+" : ""}${data.yoyPeriodRate.toFixed(1)}%`}
+              trend={data.yoyPeriodRate > 0 ? "positive" : data.yoyPeriodRate < 0 ? "negative" : "neutral"}
+              trendValue="전년 동기 대비"
+              tooltip={`전년 동기 대비 계산 방식\n\n선택 연도의 최신 월까지 합계를\n전년 동일 기간 합계와 비교합니다.\n\n예) 2026년 1~5월 합계\n   vs 2025년 1~5월 합계`}
+            />
+          </>
         ) : (
+          /* ── 전체 (연도/월 미선택): 활성 거래처 수 · 연평균 성장률(CAGR) · 월평균 성장률 ── */
           <>
             <KpiCard
               label="활성 거래처 수"
@@ -176,7 +196,7 @@ export default function Dashboard({ rows }: Props) {
               value={`${data.cagrRate >= 0 ? "+" : ""}${data.cagrRate.toFixed(1)}%`}
               trend={cagrTrend}
               trendValue="CAGR"
-              tooltip={`CAGR (연평균 복합 성장률)\n\n첫 해와 마지막 해의 연간 매출을 기준으로\n연평균 몇 % 성장했는지 계산합니다.\n\nCAGR = (마지막 연도 매출 / 첫 연도 매출)^(1/n) - 1`}
+              tooltip={`CAGR (연평균 복합 성장률)\n\n첫 해와 마지막 해의 연간 매출을 기준으로\n연평균 몇 % 성장했는지 계산합니다.\n\nCAGR = (마지막 연도 / 첫 연도)^(1/n) - 1`}
             />
             <KpiCard
               label="월평균 성장률"

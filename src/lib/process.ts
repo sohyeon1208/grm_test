@@ -24,6 +24,7 @@ export type DashboardData = {
   growthRate: number;
   yoyRate: number;
   cagrRate: number;
+  yoyPeriodRate: number;
   activeCustomers: number;
   peakMonth: string;
   avgMoMRate: number;
@@ -119,6 +120,20 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
       const n     = yearRevs[yearRevs.length - 1][0] - yearRevs[0][0]; // 연도 차이
       cagrRate = first > 0 ? (Math.pow(last / first, 1 / n) - 1) * 100 : 0;
     }
+  }
+
+  // 전년 동기 대비 (연도 선택 / 월 전체 전용)
+  let yoyPeriodRate = 0;
+  {
+    let base = rows;
+    if (division) base = base.filter((r) => r.사업부문 === division);
+    if (service)  base = base.filter((r) => r.서비스분류 === service || r.서비스 === service);
+    if (customer) base = base.filter((r) => r.거래처 === customer);
+    const targetYear  = year ?? Math.max(...base.map((r) => r.연도));
+    const maxM        = Math.max(...base.filter((r) => r.연도 === targetYear).map((r) => r.월));
+    const thisYearRev = base.filter((r) => r.연도 === targetYear && r.월 <= maxM).reduce((s, r) => s + r.매출액, 0);
+    const lastYearRev = base.filter((r) => r.연도 === targetYear - 1 && r.월 <= maxM).reduce((s, r) => s + r.매출액, 0);
+    yoyPeriodRate = lastYearRev > 0 ? ((thisYearRev - lastYearRev) / lastYearRev) * 100 : 0;
   }
 
   // 활성 거래처 수
@@ -279,6 +294,7 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
     growthRate,
     yoyRate,
     cagrRate,
+    yoyPeriodRate,
     activeCustomers,
     peakMonth,
     avgMoMRate,
