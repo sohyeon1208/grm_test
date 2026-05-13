@@ -108,7 +108,7 @@ export default function Dashboard({ rows }: Props) {
         >
           {/* 헤더 (기간 라벨 + 초기화 버튼) */}
           <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.85)" }}>
               기간
             </span>
             <button
@@ -175,7 +175,7 @@ export default function Dashboard({ rows }: Props) {
                 <button
                   onClick={() => setShow((v) => !v)}
                   className="flex items-center gap-1.5 py-1 text-xs font-semibold transition-colors duration-200"
-                  style={{ color: show ? "#00CFAA" : "rgba(255,255,255,0.75)" }}
+                  style={{ color: show ? "#00CFAA" : "rgba(255,255,255,0.9)" }}
                 >
                   <svg
                     width="11" height="11" viewBox="0 0 24 24" fill="none"

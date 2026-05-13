@@ -49,7 +49,7 @@ export default function FilterRow({ label, paramKey, options, formatLabel }: Pro
     <div className="flex items-start gap-3">
       <span
         className="text-xs font-medium mt-1.5 min-w-[4rem] text-right flex-shrink-0"
-        style={{ color: "rgba(255,255,255,0.75)" }}
+        style={{ color: "rgba(255,255,255,0.9)" }}
       >
         {label}
       </span>
@@ -62,7 +62,7 @@ export default function FilterRow({ label, paramKey, options, formatLabel }: Pro
           style={
             current === "전체"
               ? { background: ALL_GRADIENT, color: "#fff", boxShadow: ALL_GLOW }
-              : { color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)" }
+              : { color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.2)" }
           }
         >
           전체
@@ -84,8 +84,8 @@ export default function FilterRow({ label, paramKey, options, formatLabel }: Pro
                       boxShadow: `0 0 12px ${opt.color}70`,
                     }
                   : {
-                      color: "rgba(255,255,255,0.45)",
-                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.9)",
+                      border: "1px solid rgba(255,255,255,0.2)",
                     }
               }
             >
