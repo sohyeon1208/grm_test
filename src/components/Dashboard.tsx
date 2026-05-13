@@ -103,20 +103,18 @@ export default function Dashboard({ rows }: Props) {
 
         {/* ── 필터 패널 ── */}
         <div
-          className="rounded-2xl border overflow-hidden"
-          style={{ borderColor: "rgba(255,255,255,0.05)" }}
+          className="rounded-2xl border"
+          style={{ borderColor: "rgba(255,255,255,0.05)", background: "#1C1E2E" }}
         >
-          {/* 시간 필터 (연도 · 월) */}
-          <div
-            className="px-4 pt-4 pb-3 flex flex-col gap-3 relative"
-            style={{ background: "#1C1E2E" }}
-          >
-            {/* 필터 초기화 버튼 */}
+          {/* 시간 필터 헤더 (초기화 버튼 포함) */}
+          <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.25)" }}>
+              필터
+            </span>
             {hasAnyFilter && (
               <button
                 onClick={resetFilters}
-                title="필터 초기화"
-                className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-200"
                 style={{
                   background: "rgba(255,255,255,0.06)",
                   color: "rgba(255,255,255,0.45)",
@@ -140,6 +138,10 @@ export default function Dashboard({ rows }: Props) {
                 초기화
               </button>
             )}
+          </div>
+
+          {/* 시간 필터 (연도 · 월) */}
+          <div className="px-4 pt-2 pb-3 flex flex-col gap-3">
             <FilterRow
               label="연도"
               paramKey="year"
