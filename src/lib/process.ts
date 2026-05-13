@@ -77,7 +77,19 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
 
   // MoM growth rate
   let growthRate = 0;
-  if (monthlyData.length >= 2) {
+  if (month) {
+    // 특정 월 선택 시: 전월 데이터를 rows 전체에서 직접 조회
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear  = month === 1 ? (year ? year - 1 : undefined) : year;
+    let prevFiltered = rows;
+    if (prevYear)  prevFiltered = prevFiltered.filter((r) => r.연도 === prevYear);
+    prevFiltered = prevFiltered.filter((r) => r.월 === prevMonth);
+    if (division) prevFiltered = prevFiltered.filter((r) => r.사업부문 === division);
+    if (service)  prevFiltered = prevFiltered.filter((r) => r.서비스분류 === service || r.서비스 === service);
+    if (customer) prevFiltered = prevFiltered.filter((r) => r.거래처 === customer);
+    const prevRevenue = prevFiltered.reduce((s, r) => s + r.매출액, 0);
+    growthRate = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : 0;
+  } else if (monthlyData.length >= 2) {
     const last = monthlyData[monthlyData.length - 1].revenue;
     const prev = monthlyData[monthlyData.length - 2].revenue;
     growthRate = prev > 0 ? ((last - prev) / prev) * 100 : 0;
