@@ -170,10 +170,10 @@ export default function Dashboard({ rows }: Props) {
         ) : (
           /* 연도/월 미선택 시: 연평균 성장률(CAGR) */
           <KpiCard
-            label="연평균 성장률"
+            label="전년 동기 대비"
             value={`${data.cagrRate >= 0 ? "+" : ""}${data.cagrRate.toFixed(1)}%`}
             trend={cagrTrend}
-            trendValue="CAGR"
+            trendValue={`전년 동기 대비`}
             highlightValue
           />
         )}
