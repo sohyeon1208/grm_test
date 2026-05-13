@@ -40,8 +40,8 @@ export default function Dashboard({ rows }: Props) {
   const cagrTrend =
     data.cagrRate > 0 ? "positive" : data.cagrRate < 0 ? "negative" : "neutral";
 
-  // 연도/월 필터 여부
-  const hasTimeFilter = !!(year || month);
+  // 월 필터 선택 여부 (연도만 선택은 CAGR 표시)
+  const hasTimeFilter = !!month;
 
   // 활성 필터 배지
   const activeFilters = [
@@ -153,7 +153,7 @@ export default function Dashboard({ rows }: Props) {
           <>
             {/* 전월 대비 */}
             <KpiCard
-              label="전월 대비"
+              label="매출 성장률"
               value={`${data.growthRate >= 0 ? "+" : ""}${data.growthRate.toFixed(1)}%`}
               trend={growthTrend}
               trendValue="전월 대비"
