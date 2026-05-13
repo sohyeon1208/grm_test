@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getSalesData } from "@/lib/sheets";
 import Dashboard from "@/components/Dashboard";
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   const rows = await getSalesData();
