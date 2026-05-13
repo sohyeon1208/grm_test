@@ -18,8 +18,8 @@ export const DARK = {
     btnBorder:       "rgba(255,255,255,0.2)",
     allActiveGrad:   "linear-gradient(90deg, #7B70EE, #00CFAA)",
     allActiveGlow:   "0 0 14px rgba(123,112,238,0.5)",
-    optActiveGlow:   (color: string) => `0 0 12px ${color}70`,
-    optActiveText:   (isLight: boolean) => isLight ? "#13141F" : "#fff",
+    optActiveGlow:   (color: string): string => `0 0 12px ${color}70`,
+    optActiveText:   (isLight: boolean): string => isLight ? "#13141F" : "#fff",
   },
 };
 
@@ -39,12 +39,12 @@ export const LIGHT = {
   filter: {
     bg:              "#FFFFFF",
     labelColor:      "rgba(26,28,51,0.85)",
-    btnInactive:     "rgba(26,28,51,0.6)",
-    btnBorder:       "rgba(26,28,51,0.15)",
-    allActiveGrad:   "linear-gradient(90deg, #5B52D4, #00A88A)",
-    allActiveGlow:   "0 2px 10px rgba(91,82,212,0.25)",
-    optActiveGlow:   (color: string) => `0 2px 8px ${color}50`,
-    optActiveText:   (isLight: boolean) => isLight ? "#FFFFFF" : "#FFFFFF",
+    btnInactive:     "rgba(26,28,51,0.55)",
+    btnBorder:       "rgba(26,28,51,0.13)",
+    allActiveGrad:   "#1E293B",
+    allActiveGlow:   "0 2px 8px rgba(30,41,59,0.18)",
+    optActiveGlow:   (color: string) => `0 1px 6px ${color}30`,
+    optActiveText:   (_isLight: boolean) => "#fff",
   },
 };
 
