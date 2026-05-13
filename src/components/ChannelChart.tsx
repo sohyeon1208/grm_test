@@ -1,6 +1,7 @@
 "use client";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import type { TooltipProps } from "recharts";
 import type { ChannelPoint } from "@/lib/process";
 import { formatKRWShort, formatKRW } from "@/lib/format";
 import type { ThemeTokens } from "@/lib/theme";
@@ -8,16 +9,10 @@ import { DARK } from "@/lib/theme";
 
 type Props = { data: ChannelPoint[]; theme?: ThemeTokens };
 
-function ChannelTooltip({
-  active, payload, label, theme,
-}: {
-  active?: boolean;
-  payload?: ReadonlyArray<{ value: number; payload: ChannelPoint }>;
-  label?: string;
-  theme: ThemeTokens;
-}) {
+function ChannelTooltip({ active, payload, label, theme }: TooltipProps<number, string> & { theme: ThemeTokens }) {
   if (!active || !payload?.length) return null;
-  const { color } = payload[0].payload;
+  const point = payload[0].payload as ChannelPoint;
+  const value = Number(payload[0].value ?? 0);
   return (
     <div style={{
       background: theme.chart.tooltip.bg,
@@ -25,7 +20,7 @@ function ChannelTooltip({
       borderRadius: 8, padding: "8px 12px", fontSize: 12,
     }}>
       <p style={{ color: theme.chart.label, marginBottom: 4 }}>{label}</p>
-      <p style={{ color }}>매출액 : {formatKRW(payload[0].value)}</p>
+      <p style={{ color: point.color }}>매출액 : {formatKRW(value)}</p>
     </div>
   );
 }
