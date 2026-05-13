@@ -97,18 +97,25 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
     growthRate = prev > 0 ? ((last - prev) / prev) * 100 : 0;
   }
 
-  // 전년 동기 대비 — 최신 연도의 최신 월까지만 전년과 비교
+  // 전년 동기 대비 — 연도 필터 무관하게 rows 전체 기준으로 비교
   let cagrRate = 0;
   {
-    const maxYear  = Math.max(...filtered.map((r) => r.연도));
-    const maxMonth = Math.max(...filtered.filter((r) => r.연도 === maxYear).map((r) => r.월));
-    const thisYear = filtered
-      .filter((r) => r.연도 === maxYear && r.월 <= maxMonth)
+    // 비즈니스 필터(division/service/customer)만 적용한 풀 데이터
+    let base = rows;
+    if (division) base = base.filter((r) => r.사업부문 === division);
+    if (service)  base = base.filter((r) => r.서비스분류 === service || r.서비스 === service);
+    if (customer) base = base.filter((r) => r.거래처 === customer);
+
+    // 비교 기준 연도: year 필터가 있으면 그 연도, 없으면 데이터 최신 연도
+    const targetYear  = year ?? Math.max(...base.map((r) => r.연도));
+    const maxMonth    = Math.max(...base.filter((r) => r.연도 === targetYear).map((r) => r.월));
+    const thisYearRev = base
+      .filter((r) => r.연도 === targetYear && r.월 <= maxMonth)
       .reduce((s, r) => s + r.매출액, 0);
-    const lastYear = filtered
-      .filter((r) => r.연도 === maxYear - 1 && r.월 <= maxMonth)
+    const lastYearRev = base
+      .filter((r) => r.연도 === targetYear - 1 && r.월 <= maxMonth)
       .reduce((s, r) => s + r.매출액, 0);
-    cagrRate = lastYear > 0 ? ((thisYear - lastYear) / lastYear) * 100 : 0;
+    cagrRate = lastYearRev > 0 ? ((thisYearRev - lastYearRev) / lastYearRev) * 100 : 0;
   }
 
   // YoY growth rate (전년 동월/동기 대비)
