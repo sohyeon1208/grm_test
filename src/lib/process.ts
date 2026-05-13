@@ -22,6 +22,7 @@ export type DashboardData = {
   totalDeals: number;
   monthlyAvg: number;
   growthRate: number;
+  yoyRate: number;
   periodLabel: string;
   monthlyData: MonthlyPoint[];
   channelData: ChannelPoint[];
@@ -93,6 +94,19 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
     const last = monthlyData[monthlyData.length - 1].revenue;
     const prev = monthlyData[monthlyData.length - 2].revenue;
     growthRate = prev > 0 ? ((last - prev) / prev) * 100 : 0;
+  }
+
+  // YoY growth rate (전년 동월/동기 대비)
+  let yoyRate = 0;
+  {
+    let yoyFiltered = rows;
+    if (year)     yoyFiltered = yoyFiltered.filter((r) => r.연도 === year - 1);
+    if (month)    yoyFiltered = yoyFiltered.filter((r) => r.월 === month);
+    if (division) yoyFiltered = yoyFiltered.filter((r) => r.사업부문 === division);
+    if (service)  yoyFiltered = yoyFiltered.filter((r) => r.서비스분류 === service || r.서비스 === service);
+    if (customer) yoyFiltered = yoyFiltered.filter((r) => r.거래처 === customer);
+    const yoyRevenue = yoyFiltered.reduce((s, r) => s + r.매출액, 0);
+    yoyRate = yoyRevenue > 0 ? ((totalRevenue - yoyRevenue) / yoyRevenue) * 100 : 0;
   }
 
   // Period label — 선택된 필터에 맞춰 표시
@@ -219,6 +233,7 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
     totalDeals,
     monthlyAvg,
     growthRate,
+    yoyRate,
     periodLabel,
     monthlyData,
     channelData,

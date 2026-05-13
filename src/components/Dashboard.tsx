@@ -134,7 +134,7 @@ export default function Dashboard({ rows }: Props) {
       </div>
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
         <KpiCard label="총 매출" value={formatKRW(data.totalRevenue)} />
         <KpiCard
           label="총 거래 수"
@@ -146,6 +146,12 @@ export default function Dashboard({ rows }: Props) {
           value={`${data.growthRate >= 0 ? "+" : ""}${data.growthRate.toFixed(1)}%`}
           trend={growthTrend}
           trendValue="전월 대비"
+        />
+        <KpiCard
+          label="전년 동월 대비"
+          value={`${data.yoyRate >= 0 ? "+" : ""}${data.yoyRate.toFixed(1)}%`}
+          trend={data.yoyRate > 0 ? "positive" : data.yoyRate < 0 ? "negative" : "neutral"}
+          trendValue="전년 동기 대비"
         />
       </div>
 
