@@ -13,9 +13,6 @@ type Props = {
   theme?: ThemeTokens;
 };
 
-// 전체 버튼: purple → cyan 그라디언트 (모든 필터 행 공통)
-const ALL_GRADIENT = "linear-gradient(90deg, #7B70EE, #00CFAA)";
-const ALL_GLOW = "0 0 14px rgba(123,112,238,0.5)";
 
 export default function FilterRow({ label, paramKey, options, formatLabel, theme = DARK }: Props) {
   const router = useRouter();
@@ -48,14 +45,13 @@ export default function FilterRow({ label, paramKey, options, formatLabel, theme
 
   if (options.length === 0) return null;
 
-  const inactiveColor  = theme.filter.btnInactive;
-  const inactiveBorder = theme.filter.btnBorder;
+  const f = theme.filter;
 
   return (
     <div className="flex items-start gap-3">
       <span
         className="text-xs font-medium mt-1.5 min-w-[4rem] text-right flex-shrink-0"
-        style={{ color: theme.filter.labelColor }}
+        style={{ color: f.labelColor }}
       >
         {label}
       </span>
@@ -67,8 +63,8 @@ export default function FilterRow({ label, paramKey, options, formatLabel, theme
           className="px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-200"
           style={
             current === "전체"
-              ? { background: ALL_GRADIENT, color: "#fff", boxShadow: ALL_GLOW }
-              : { color: inactiveColor, border: `1px solid ${inactiveBorder}` }
+              ? { background: f.allActiveGrad, color: "#fff", boxShadow: f.allActiveGlow }
+              : { color: f.btnInactive, border: `1px solid ${f.btnBorder}` }
           }
         >
           전체
@@ -84,8 +80,8 @@ export default function FilterRow({ label, paramKey, options, formatLabel, theme
               className="px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-200"
               style={
                 isActive
-                  ? { background: opt.color, color: isLightColor(opt.color) ? "#13141F" : "#fff", boxShadow: `0 0 12px ${opt.color}70` }
-                  : { color: inactiveColor, border: `1px solid ${inactiveBorder}` }
+                  ? { background: opt.color, color: f.optActiveText(isLightColor(opt.color)), boxShadow: f.optActiveGlow(opt.color) }
+                  : { color: f.btnInactive, border: `1px solid ${f.btnBorder}` }
               }
             >
               {formatLabel ? formatLabel(opt.value) : opt.value}
