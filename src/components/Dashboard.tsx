@@ -158,23 +158,22 @@ export default function Dashboard({ rows }: Props) {
               trend={growthTrend}
               trendValue="전월 대비"
             />
-            {/* 전년 동월 대비 → 매출성장률 */}
+            {/* 전년 동월 대비 — 동일한 디자인 */}
             <KpiCard
               label="매출 성장률"
               value={`${data.yoyRate >= 0 ? "+" : ""}${data.yoyRate.toFixed(1)}%`}
               trend={yoyTrend}
               trendValue="전년 동월 대비"
-              highlightValue
             />
           </>
         ) : (
-          /* 연도/월 미선택 시: 연평균 성장률(CAGR) */
+          /* 연도/월 미선택 시: 전년 동기 대비 (연평균 성장률) */
           <KpiCard
-            label="전년 동기 대비"
+            label="연평균 성장률"
             value={`${data.cagrRate >= 0 ? "+" : ""}${data.cagrRate.toFixed(1)}%`}
             trend={cagrTrend}
-            trendValue={`전년 동기 대비`}
-            highlightValue
+            trendValue="전년 동기 대비"
+            tooltip={`전년 동기 대비 계산 방식\n\n데이터 기준 최신 월까지의 기간을\n전년 동일 기간과 비교합니다.\n\n예) 2026년 1~5월 합계\n   vs 2025년 1~5월 합계`}
           />
         )}
       </div>
