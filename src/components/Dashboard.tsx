@@ -35,6 +35,13 @@ export default function Dashboard({ rows }: Props) {
 
   const growthTrend =
     data.growthRate > 0 ? "positive" : data.growthRate < 0 ? "negative" : "neutral";
+  const yoyTrend =
+    data.yoyRate > 0 ? "positive" : data.yoyRate < 0 ? "negative" : "neutral";
+  const cagrTrend =
+    data.cagrRate > 0 ? "positive" : data.cagrRate < 0 ? "negative" : "neutral";
+
+  // 연도/월 필터 여부
+  const hasTimeFilter = !!(year || month);
 
   // 활성 필터 배지
   const activeFilters = [
@@ -134,25 +141,42 @@ export default function Dashboard({ rows }: Props) {
       </div>
 
       {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+      <div className={`grid gap-4 mb-6 ${hasTimeFilter ? "grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "grid-cols-2 lg:grid-cols-4"}`}>
         <KpiCard label="총 매출" value={formatKRW(data.totalRevenue)} />
         <KpiCard
           label="총 거래 수"
           value={`${data.totalDeals.toLocaleString("ko-KR")}건`}
         />
         <KpiCard label="월 평균 매출" value={formatKRW(data.monthlyAvg)} />
-        <KpiCard
-          label="매출 성장률"
-          value={`${data.growthRate >= 0 ? "+" : ""}${data.growthRate.toFixed(1)}%`}
-          trend={growthTrend}
-          trendValue="전월 대비"
-        />
-        <KpiCard
-          label="전년 동월 대비"
-          value={`${data.yoyRate >= 0 ? "+" : ""}${data.yoyRate.toFixed(1)}%`}
-          trend={data.yoyRate > 0 ? "positive" : data.yoyRate < 0 ? "negative" : "neutral"}
-          trendValue="전년 동기 대비"
-        />
+
+        {hasTimeFilter ? (
+          <>
+            {/* 전월 대비 */}
+            <KpiCard
+              label="전월 대비"
+              value={`${data.growthRate >= 0 ? "+" : ""}${data.growthRate.toFixed(1)}%`}
+              trend={growthTrend}
+              trendValue="전월 대비"
+            />
+            {/* 전년 동월 대비 → 매출성장률 */}
+            <KpiCard
+              label="매출 성장률"
+              value={`${data.yoyRate >= 0 ? "+" : ""}${data.yoyRate.toFixed(1)}%`}
+              trend={yoyTrend}
+              trendValue="전년 동월 대비"
+              highlightValue
+            />
+          </>
+        ) : (
+          /* 연도/월 미선택 시: 연평균 성장률(CAGR) */
+          <KpiCard
+            label="연평균 성장률"
+            value={`${data.cagrRate >= 0 ? "+" : ""}${data.cagrRate.toFixed(1)}%`}
+            trend={cagrTrend}
+            trendValue="CAGR"
+            highlightValue
+          />
+        )}
       </div>
 
       {/* ── Monthly Bar Chart ── */}

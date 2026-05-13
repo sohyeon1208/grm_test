@@ -23,6 +23,7 @@ export type DashboardData = {
   monthlyAvg: number;
   growthRate: number;
   yoyRate: number;
+  cagrRate: number;
   periodLabel: string;
   monthlyData: MonthlyPoint[];
   channelData: ChannelPoint[];
@@ -94,6 +95,22 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
     const last = monthlyData[monthlyData.length - 1].revenue;
     const prev = monthlyData[monthlyData.length - 2].revenue;
     growthRate = prev > 0 ? ((last - prev) / prev) * 100 : 0;
+  }
+
+  // CAGR (연평균 성장률) — 연도별 합계 기반
+  let cagrRate = 0;
+  {
+    const yearRevMap = new Map<number, number>();
+    for (const row of filtered) {
+      yearRevMap.set(row.연도, (yearRevMap.get(row.연도) ?? 0) + row.매출액);
+    }
+    const yearRevs = Array.from(yearRevMap.entries()).sort(([a], [b]) => a - b);
+    if (yearRevs.length >= 2) {
+      const first = yearRevs[0][1];
+      const last  = yearRevs[yearRevs.length - 1][1];
+      const n     = yearRevs.length - 1;
+      cagrRate = first > 0 ? (Math.pow(last / first, 1 / n) - 1) * 100 : 0;
+    }
   }
 
   // YoY growth rate (전년 동월/동기 대비)
@@ -234,6 +251,7 @@ export function processRaw(rows: SalesRow[], filters: DashboardFilters = {}): Da
     monthlyAvg,
     growthRate,
     yoyRate,
+    cagrRate,
     periodLabel,
     monthlyData,
     channelData,
