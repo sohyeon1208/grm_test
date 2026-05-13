@@ -19,8 +19,8 @@ export default function MonthlyChart({ data, theme = DARK }: Props) {
         <BarChart data={data} barCategoryGap="32%">
           <defs>
             <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00CFAA" />
-              <stop offset="100%" stopColor="#7B70EE" />
+              <stop offset="0%" stopColor="#5BA5BE" />
+              <stop offset="100%" stopColor="#7B7FC4" />
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} stroke={chart.grid} />

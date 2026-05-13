@@ -19,8 +19,8 @@ export default function TopMenuChart({ data, theme = DARK }: Props) {
         <BarChart data={data} layout="vertical" barCategoryGap="20%" margin={{ right: 56 }}>
           <defs>
             <linearGradient id="topBarGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#7B70EE" />
-              <stop offset="100%" stopColor="#00CFAA" />
+              <stop offset="0%" stopColor="#7B7FC4" />
+              <stop offset="100%" stopColor="#5BA5BE" />
             </linearGradient>
           </defs>
           <CartesianGrid horizontal={false} stroke={chart.grid} />
