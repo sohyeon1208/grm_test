@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { SalesRow } from "@/lib/sheets";
 import { processRaw } from "@/lib/process";
@@ -25,6 +25,8 @@ export default function Dashboard({ rows }: Props) {
   );
 
   const resetFilters = () => router.push("?", { scroll: false });
+
+  const [showCustomer, setShowCustomer] = useState(false);
 
   // URL 쿼리스트링에서 현재 필터 값 읽기
   const yearStr  = searchParams.get("year")     ?? undefined;
@@ -168,11 +170,38 @@ export default function Dashboard({ rows }: Props) {
               paramKey="service"
               options={data.filterOptions.services}
             />
-            <FilterRow
-              label="고객사"
-              paramKey="customer"
-              options={data.filterOptions.customers}
-            />
+
+            {/* 고객사 토글 */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowCustomer((v) => !v)}
+                className="flex items-center gap-1.5 text-xs font-medium min-w-[4rem] justify-end transition-colors duration-200"
+                style={{ color: showCustomer ? "#00CFAA" : "rgba(255,255,255,0.3)" }}
+              >
+                고객사
+                <svg
+                  width="12" height="12" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  style={{ transform: showCustomer ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              {!showCustomer && (
+                <span className="text-xs" style={{ color: "rgba(255,255,255,0.2)" }}>
+                  클릭하여 고객사 필터 열기
+                </span>
+              )}
+            </div>
+            {showCustomer && (
+              <div className="pl-[4.75rem]">
+                <FilterRow
+                  label=""
+                  paramKey="customer"
+                  options={data.filterOptions.customers}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
