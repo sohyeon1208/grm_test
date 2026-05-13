@@ -26,8 +26,8 @@ export default function Dashboard({ rows }: Props) {
 
   const resetFilters = () => router.push("?", { scroll: false });
 
-  const [showDivision, setShowDivision] = useState(false);
-  const [showService,  setShowService]  = useState(false);
+  const [showDivision, setShowDivision] = useState(true);
+  const [showService,  setShowService]  = useState(true);
   const [showCustomer, setShowCustomer] = useState(false);
 
   // URL 쿼리스트링에서 현재 필터 값 읽기
