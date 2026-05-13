@@ -2,19 +2,22 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import type { FilterOption } from "@/lib/process";
+import type { ThemeTokens } from "@/lib/theme";
+import { DARK } from "@/lib/theme";
 
 type Props = {
   label: string;
   paramKey: string;
   options: FilterOption[];
-  formatLabel?: (value: string) => string; // 버튼 텍스트 변환 (예: "4" → "4월")
+  formatLabel?: (value: string) => string;
+  theme?: ThemeTokens;
 };
 
 // 전체 버튼: purple → cyan 그라디언트 (모든 필터 행 공통)
 const ALL_GRADIENT = "linear-gradient(90deg, #7B70EE, #00CFAA)";
 const ALL_GLOW = "0 0 14px rgba(123,112,238,0.5)";
 
-export default function FilterRow({ label, paramKey, options, formatLabel }: Props) {
+export default function FilterRow({ label, paramKey, options, formatLabel, theme = DARK }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const current = searchParams.get(paramKey) ?? "전체";
@@ -45,11 +48,14 @@ export default function FilterRow({ label, paramKey, options, formatLabel }: Pro
 
   if (options.length === 0) return null;
 
+  const inactiveColor  = theme.filter.btnInactive;
+  const inactiveBorder = theme.filter.btnBorder;
+
   return (
     <div className="flex items-start gap-3">
       <span
         className="text-xs font-medium mt-1.5 min-w-[4rem] text-right flex-shrink-0"
-        style={{ color: "rgba(255,255,255,0.9)" }}
+        style={{ color: theme.filter.labelColor }}
       >
         {label}
       </span>
@@ -62,7 +68,7 @@ export default function FilterRow({ label, paramKey, options, formatLabel }: Pro
           style={
             current === "전체"
               ? { background: ALL_GRADIENT, color: "#fff", boxShadow: ALL_GLOW }
-              : { color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.2)" }
+              : { color: inactiveColor, border: `1px solid ${inactiveBorder}` }
           }
         >
           전체
@@ -78,15 +84,8 @@ export default function FilterRow({ label, paramKey, options, formatLabel }: Pro
               className="px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-200"
               style={
                 isActive
-                  ? {
-                      background: opt.color,
-                      color: isLightColor(opt.color) ? "#13141F" : "#fff",
-                      boxShadow: `0 0 12px ${opt.color}70`,
-                    }
-                  : {
-                      color: "rgba(255,255,255,0.9)",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                    }
+                  ? { background: opt.color, color: isLightColor(opt.color) ? "#13141F" : "#fff", boxShadow: `0 0 12px ${opt.color}70` }
+                  : { color: inactiveColor, border: `1px solid ${inactiveBorder}` }
               }
             >
               {formatLabel ? formatLabel(opt.value) : opt.value}

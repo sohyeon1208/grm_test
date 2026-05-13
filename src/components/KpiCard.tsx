@@ -1,45 +1,47 @@
 "use client";
 
 import { useState } from "react";
+import type { ThemeTokens } from "@/lib/theme";
+import { DARK } from "@/lib/theme";
 
 type Props = {
   label: string;
   value: string;
   trend?: "positive" | "negative" | "neutral";
   trendValue?: string;
-  tooltip?: string; // 물음표 아이콘 hover 시 표시할 설명
+  tooltip?: string;
+  theme?: ThemeTokens;
 };
 
-export default function KpiCard({ label, value, trend, trendValue, tooltip }: Props) {
+export default function KpiCard({ label, value, trend, trendValue, tooltip, theme = DARK }: Props) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const trendColor =
-    trend === "positive"
-      ? "text-emerald-400"
-      : trend === "negative"
-      ? "text-pink-400"
-      : "text-white/50";
+    trend === "positive" ? "text-emerald-500"
+    : trend === "negative" ? "text-pink-500"
+    : "";
 
-  const trendSymbol =
-    trend === "positive" ? "▲" : trend === "negative" ? "▼" : "";
+  const trendSymbol = trend === "positive" ? "▲" : trend === "negative" ? "▼" : "";
 
   return (
-    <div className="bg-[#1C1E2E] rounded-2xl p-5 flex flex-col gap-2 border border-white/5">
-      {/* 라벨 + 물음표 아이콘 */}
+    <div
+      className="rounded-2xl p-5 flex flex-col gap-2"
+      style={{
+        background: theme.bg.card,
+        border: `1px solid ${theme.border}`,
+        boxShadow: theme === DARK ? "none" : "0 2px 12px rgba(0,0,0,0.06)",
+      }}
+    >
+      {/* 라벨 + 물음표 */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-white/50 tracking-wider uppercase">{label}</span>
+        <span className="text-xs font-medium tracking-wider uppercase" style={{ color: theme.text.secondary }}>
+          {label}
+        </span>
         {tooltip && (
-          <div
-            className="relative flex-shrink-0"
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-          >
+          <div className="relative flex-shrink-0" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
             <span
               className="flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold cursor-default select-none"
-              style={{
-                border: "1px solid rgba(255,255,255,0.25)",
-                color: "rgba(255,255,255,0.35)",
-              }}
+              style={{ border: `1px solid ${theme.text.muted}`, color: theme.text.muted }}
             >
               ?
             </span>
@@ -47,10 +49,10 @@ export default function KpiCard({ label, value, trend, trendValue, tooltip }: Pr
               <div
                 className="absolute right-0 top-5 z-50 rounded-lg p-3 text-xs leading-relaxed whitespace-pre-line w-56"
                 style={{
-                  background: "#2A2D42",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.7)",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                  background: theme.chart.tooltip.bg,
+                  border: `1px solid ${theme.chart.tooltip.border}`,
+                  color: theme.text.secondary,
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                 }}
               >
                 {tooltip}
@@ -61,13 +63,13 @@ export default function KpiCard({ label, value, trend, trendValue, tooltip }: Pr
       </div>
 
       {/* 값 */}
-      <span className="text-2xl font-bold leading-tight" style={{ color: "rgba(255,255,255,0.87)" }}>
+      <span className="text-2xl font-bold leading-tight" style={{ color: theme.text.primary }}>
         {value}
       </span>
 
       {/* 트렌드 */}
       {trendValue && (
-        <span className={`text-xs font-medium ${trendColor}`}>
+        <span className={`text-xs font-medium ${trendColor}`} style={!trend || trend === "neutral" ? { color: theme.text.muted } : {}}>
           {trendSymbol && `${trendSymbol} `}{trendValue}
         </span>
       )}
