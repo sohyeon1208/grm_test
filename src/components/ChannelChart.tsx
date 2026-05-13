@@ -12,7 +12,7 @@ function ChannelTooltip({
   active, payload, label, theme,
 }: {
   active?: boolean;
-  payload?: Array<{ value: number; payload: ChannelPoint }>;
+  payload?: ReadonlyArray<{ value: number; payload: ChannelPoint }>;
   label?: string;
   theme: ThemeTokens;
 }) {
