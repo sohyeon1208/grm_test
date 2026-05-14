@@ -7,7 +7,7 @@ import InfoTooltip from "@/components/layout/InfoTooltip";
 import CustomerKanban from "./CustomerKanban";
 import NewCustomerModal from "./NewCustomerModal";
 import type { Customer } from "@/lib/customers";
-import { deriveContractItem } from "@/lib/contractItem";
+import { deriveContractItem, SERVICE_OPTIONS } from "@/lib/contractItem";
 
 type Props = {
   customers: Customer[];
@@ -55,14 +55,14 @@ export default function ContractsBoard({ customers, total, upcoming }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [serviceFilter, setServiceFilter] = useState("전체");
 
-  // 서비스 종류 목록 (고객 데이터에서 자동 추출)
+  // 서비스 목록 — SERVICE_OPTIONS 순서 유지, 실제 사용된 것만 표시
   const serviceOptions = useMemo(() => {
-    const set = new Set<string>();
+    const used = new Set<string>();
     for (const c of customers) {
       const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
-      if (item) set.add(item);
+      if (item && (SERVICE_OPTIONS as readonly string[]).includes(item)) used.add(item);
     }
-    return ["전체", ...Array.from(set).sort()];
+    return ["전체", ...SERVICE_OPTIONS.filter((s) => used.has(s))];
   }, [customers]);
 
   // 서비스 필터 적용

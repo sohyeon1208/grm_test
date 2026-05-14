@@ -1,15 +1,5 @@
 import { hasGoogleEnv, readRange, appendRow } from "@/lib/google";
 
-/**
- * 히스토리 데이터.
- * 두 탭을 합쳐서 사용:
- *   - "📂 히스토리 전체"  (기존 데이터)
- *   - "히스토리 입력"      (append 대상)
- *
- * 헤더 행(1행)을 읽어서 컬럼 위치를 동적으로 탐지하므로
- * 시트 컬럼 순서가 달라도 동작한다.
- */
-
 export const HISTORY_ARCHIVE_SHEET = "📂 히스토리 전체";
 export const HISTORY_INPUT_SHEET = "히스토리 입력";
 
@@ -26,7 +16,6 @@ export type HistoryEntry = {
 
 const s = (v: unknown): string => (v == null ? "" : String(v));
 
-/** 헤더 배열에서 후보 이름 중 하나와 일치하는 컬럼 인덱스를 반환. 없으면 -1. */
 function colIdx(header: string[], candidates: string[]): number {
   const norm = (h: string) => h.replace(/\s+/g, "").toLowerCase();
   for (const c of candidates) {
@@ -36,7 +25,6 @@ function colIdx(header: string[], candidates: string[]): number {
   return -1;
 }
 
-/** 날짜 문자열을 ISO(YYYY-MM-DD) 형태로 정규화 (정렬 비교용). */
 function normDate(d: string): string {
   if (!d) return "";
   const m = d.match(/(\d{4})[년.\-\/]?\s*(\d{1,2})[월.\-\/]?\s*(\d{1,2})/);
@@ -49,14 +37,24 @@ async function readSheetDynamic(
   source: "archive" | "input"
 ): Promise<HistoryEntry[]> {
   try {
-    // A1부터 읽어서 1행을 헤더로 사용, 2행~가 실제 데이터
-    const allRows = await readRange(`${sheetName}!A1:G`);
+    // A1부터 H열까지 읽어서 넉넉하게 확보 (컬럼 G까지 실제 사용)
+    const allRows = await readRange(`${sheetName}!A1:H`);
     if (allRows.length < 2) return [];
 
-    const header = allRows[0].map((h) => s(h));
-    const dataRows = allRows.slice(1);
+    const headerRow = allRows[0].map((h) => s(h));
 
-    // 헤더에서 각 컬럼 위치 탐지 (못 찾으면 HANDOFF 기준 고정 인덱스 사용)
+    // 헤더 행이 유효한지 확인 (날짜 또는 영업활동명 칼럼이 있어야 함)
+    // 헤더가 아닌 경우(안내문 등) → 첫 행을 헤더로 쓰지 않고 데이터로 간주
+    const hasValidHeader =
+      colIdx(headerRow, ["날짜", "date"]) >= 0 ||
+      colIdx(headerRow, ["영업활동명", "영업 활동명"]) >= 0 ||
+      colIdx(headerRow, ["내용", "히스토리내용", "히스토리 내용"]) >= 0;
+
+    const header = hasValidHeader ? headerRow : [];
+    const dataRows = hasValidHeader ? allRows.slice(1) : allRows;
+
+    // 헤더에서 각 컬럼 위치 탐지 (못 찾으면 실제 시트 안내문 기준 고정 인덱스 사용)
+    // 히스토리 시트 실제 구조: A=순번, B=날짜, C=유형, D=영업활동명, E=그룹ID, F=영업단계, G=내용
     const iDate    = colIdx(header, ["날짜", "date"]);
     const iType    = colIdx(header, ["유형", "type"]);
     const iName    = colIdx(header, ["영업활동명", "영업 활동명", "활동명"]);
@@ -69,16 +67,18 @@ async function readSheetDynamic(
 
     return dataRows
       .map((row, idx) => ({
-        rowIndex: idx + 2, // 헤더가 1행 → 데이터는 2행부터
+        rowIndex: (hasValidHeader ? 2 : 1) + idx,
         source,
-        날짜:      get(row, iDate,    0),
-        유형:      get(row, iType,    1),
-        영업활동명: get(row, iName,    2),
-        그룹ID:    get(row, iGroupId, 3),
-        영업단계:  get(row, iStage,   4),
-        내용:      get(row, iContent, 5),
+        // 헤더 탐지 실패 시 시트 안내문 기준: B=날짜(1), C=유형(2), D=영업활동명(3), E=그룹ID(4), F=영업단계(5), G=내용(6)
+        날짜:      get(row, iDate,    1),
+        유형:      get(row, iType,    2),
+        영업활동명: get(row, iName,    3),
+        그룹ID:    get(row, iGroupId, 4),
+        영업단계:  get(row, iStage,   5),
+        내용:      get(row, iContent, 6),
       }))
-      .filter((e) => e.날짜 || e.내용 || e.영업활동명);
+      // 영업활동명이 없는 행은 안내문/빈 행으로 간주하고 제외
+      .filter((e) => e.영업활동명.trim());
   } catch (err) {
     console.error(`[history.readSheet] failed for "${sheetName}"`, err);
     return [];
@@ -98,9 +98,9 @@ export async function getHistory(): Promise<HistoryEntry[]> {
 
 /**
  * 특정 고객의 히스토리.
- * 1순위: 영업활동명 정확일치 (공백 정규화 포함)
+ * 1순위: 영업활동명 정확일치 (공백 정규화)
  * 2순위: 그룹ID 정확일치
- * 3순위: 영업활동명 부분일치 (2자 이상)
+ * 3순위: 영업활동명 부분일치 (2자 이상, 영업활동명이 있는 행만)
  */
 export async function getHistoryFor(
   영업활동명: string,
@@ -119,9 +119,12 @@ export async function getHistoryFor(
     if (byId.length > 0) return byId;
   }
 
+  // 부분일치: 반드시 영업활동명이 비어있지 않은 행만 (빈 문자열이면 모든 key에 매칭되는 버그 방지)
   if (key.length >= 2) {
     return all.filter(
-      (e) => norm(e.영업활동명).includes(key) || key.includes(norm(e.영업활동명))
+      (e) =>
+        e.영업활동명.trim() &&
+        (norm(e.영업활동명).includes(key) || key.includes(norm(e.영업활동명)))
     );
   }
 
@@ -137,7 +140,8 @@ export async function addHistory(entry: {
   영업단계?: string;
   내용: string;
 }): Promise<void> {
-  await appendRow(`${HISTORY_INPUT_SHEET}!A:F`, [
+  // 실제 시트 구조: A=순번(비움), B=날짜, C=유형, D=영업활동명, E=그룹ID, F=영업단계, G=내용
+  await appendRow(`${HISTORY_INPUT_SHEET}!B:G`, [
     entry.날짜,
     entry.유형,
     entry.영업활동명,
