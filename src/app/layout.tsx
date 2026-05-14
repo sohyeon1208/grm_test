@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeProvider } from "@/components/layout/ThemeContext";
+import AppShell from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
-  title: "구루미 매출 현황",
-  description: "구루미 Sales Dashboard",
+  title: "Gooroomee — Sales + CRM",
+  description: "Gooroomee Sales Dashboard + CRM",
 };
 
 export default function RootLayout({
@@ -19,7 +21,11 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
       </head>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <ThemeProvider>
+          <AppShell>{children}</AppShell>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

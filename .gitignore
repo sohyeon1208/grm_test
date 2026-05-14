@@ -33,9 +33,21 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# service account keys (JSON) - NEVER commit
+*service-account*.json
+*-iam-*.json
+crypto-resolver-*.json
+
+# local debug scripts (filename starts with underscore)
+/_*.mjs
+/_*.js
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 인수인계 문서 (로컬 참고용)
+HANDOFF.md

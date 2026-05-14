@@ -1,30 +1,23 @@
-import { google } from "googleapis";
+import { hasGoogleEnv, readRange } from "@/lib/google";
 
-// 실제 시트 컬럼 구조 (A~K)
-// A:번호 B:날짜 C:연도 D:월 E:고객사 F:서비스 G:서비스분류 H:공급가액 I:부가세포함 J:입금확인 K:사업부문
+/**
+ * 매출 마스터 데이터 (📋 마스터데이터 탭)
+ *
+ * 실제 시트 컬럼 구조 (A~K)
+ * A:번호 B:날짜 C:연도 D:월 E:고객사 F:서비스 G:서비스분류 H:공급가액 I:부가세포함 J:입금확인 K:사업부문
+ */
 export type SalesRow = {
   연도: number;
   월: number;
-  거래처: string;    // E열: 고객사
-  서비스: string;    // F열: 서비스
-  서비스분류: string; // G열: 서비스분류
-  매출액: number;    // H열: 공급가액(원)
-  사업부문: string;  // K열: 사업부문
+  거래처: string;
+  서비스: string;
+  서비스분류: string;
+  매출액: number;
+  사업부문: string;
 };
 
-const SHEET_NAME = "📋 마스터데이터";
+export const SALES_SHEET_NAME = "📋 마스터데이터";
 const START_ROW = 2;
-
-function getAuth() {
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  return new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: privateKey,
-    },
-    scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
-  });
-}
 
 function toNumber(value: string | undefined | null): number {
   if (!value) return 0;
@@ -32,21 +25,11 @@ function toNumber(value: string | undefined | null): number {
 }
 
 export async function getSalesData(): Promise<SalesRow[]> {
-  if (!process.env.GOOGLE_SHEET_ID || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
-    return [];
-  }
+  if (!hasGoogleEnv()) return [];
 
   try {
-    const auth = getAuth();
-    const sheets = google.sheets({ version: "v4", auth });
-
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: process.env.GOOGLE_SHEET_ID,
-      range: `${SHEET_NAME}!A${START_ROW}:K`,
-    });
-
-    const rows = response.data.values;
-    if (!rows || rows.length === 0) return [];
+    const rows = await readRange(`${SALES_SHEET_NAME}!A${START_ROW}:K`);
+    if (rows.length === 0) return [];
 
     return rows
       .filter((row) => row[2])
@@ -59,7 +42,8 @@ export async function getSalesData(): Promise<SalesRow[]> {
         매출액: toNumber(row[7]),
         사업부문: row[10] ?? "",
       }));
-  } catch {
+  } catch (err) {
+    console.error("[sheets.getSalesData] failed", err);
     return [];
   }
 }
