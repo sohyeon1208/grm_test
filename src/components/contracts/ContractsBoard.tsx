@@ -30,7 +30,7 @@ function exportCSV(customers: Customer[]) {
   ];
   const esc = (v: string) => `"${(v ?? "").replace(/"/g, '""')}"`;
   const rows = customers.map((c) => {
-    const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형 });
+    const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
     return [
       c.영업활동명, c.그룹명, c.그룹ID, c.영업단계, item || c.계약항목, c.그룹유형,
       c.요금, c.계약만료일, c.라이선스수, c.MAU,
@@ -59,7 +59,7 @@ export default function ContractsBoard({ customers, total, upcoming }: Props) {
   const serviceOptions = useMemo(() => {
     const set = new Set<string>();
     for (const c of customers) {
-      const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형 });
+      const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
       if (item) set.add(item);
     }
     return ["전체", ...Array.from(set).sort()];
@@ -69,7 +69,7 @@ export default function ContractsBoard({ customers, total, upcoming }: Props) {
   const filtered = useMemo(() => {
     if (serviceFilter === "전체") return customers;
     return customers.filter((c) => {
-      const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형 });
+      const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
       return item === serviceFilter;
     });
   }, [customers, serviceFilter]);
@@ -137,7 +137,7 @@ export default function ContractsBoard({ customers, total, upcoming }: Props) {
               opt === "전체"
                 ? customers.length
                 : customers.filter((c) => {
-                    const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형 });
+                    const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
                     return item === opt;
                   }).length;
             return (

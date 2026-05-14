@@ -4,28 +4,28 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/layout/ThemeContext";
 import { DARK, LIGHT } from "@/lib/theme";
+import { SERVICE_OPTIONS } from "@/lib/contractItem";
 
 type Props = { open: boolean; onClose: () => void };
 
-// 고객사 마스터 18컬럼 입력 필드 정의
+// 서비스 선택(계약항목)은 드롭다운으로 별도 처리하므로 여기선 제외
 const FIELDS: { key: string; label: string; required?: boolean; placeholder?: string }[] = [
-  { key: "그룹명", label: "그룹명", required: true, placeholder: "예: 한국고용정보원" },
-  { key: "영업활동명", label: "영업활동명", required: true, placeholder: "예: 한국고용정보원-청년정책팀-화상면접" },
-  { key: "그룹ID", label: "그룹 ID", placeholder: "예: keis_online" },
-  { key: "영업단계", label: "영업 단계", placeholder: "예: 계약완료 / 제안 / 계약종료" },
-  { key: "그룹유형", label: "그룹유형", placeholder: "예: V1 / V3 / 올리고" },
-  { key: "정산주기", label: "정산주기", placeholder: "예: 월 / 단기 / 변동" },
-  { key: "정산일", label: "정산일", placeholder: "예: 10일" },
-  { key: "요금", label: "요금", placeholder: "예: 49,000" },
-  { key: "청구방법", label: "청구방법", placeholder: "예: 스마트빌 / 나라빌" },
-  { key: "계약항목", label: "계약항목(이용서비스)", placeholder: "비우면 그룹유형 기반 자동" },
+  { key: "그룹명",      label: "그룹명",      required: true, placeholder: "예: 한국고용정보원" },
+  { key: "영업활동명",  label: "영업활동명",  required: true, placeholder: "예: 한국고용정보원-청년정책팀-화상면접" },
+  { key: "그룹ID",      label: "그룹 ID",     placeholder: "예: keis_online" },
+  { key: "영업단계",    label: "영업 단계",   placeholder: "예: 계약완료 / 제안 / 계약종료" },
+  { key: "그룹유형",    label: "그룹유형",    placeholder: "예: V1 / V3" },
+  { key: "정산주기",    label: "정산주기",    placeholder: "예: 월 / 단기 / 변동" },
+  { key: "정산일",      label: "정산일",      placeholder: "예: 10일" },
+  { key: "요금",        label: "요금",        placeholder: "예: 49,000" },
+  { key: "청구방법",    label: "청구방법",    placeholder: "예: 스마트빌 / 나라빌" },
   { key: "세금계산서고객사명", label: "세금계산서 고객사명" },
-  { key: "계약만료일", label: "계약 만료일", placeholder: "yyyy-MM-dd" },
-  { key: "라이선스수", label: "라이선스 수" },
-  { key: "MAU", label: "MAU" },
-  { key: "정산담당자", label: "정산 담당자 / 수신처" },
-  { key: "정산방법", label: "정산방법" },
-  { key: "계약비고", label: "계약 비고" },
+  { key: "계약만료일",  label: "계약 만료일", placeholder: "yyyy-MM-dd" },
+  { key: "라이선스수",  label: "라이선스 수" },
+  { key: "MAU",         label: "MAU" },
+  { key: "정산담당자",  label: "정산 담당자 / 수신처" },
+  { key: "정산방법",    label: "정산방법" },
+  { key: "계약비고",    label: "계약 비고" },
 ];
 
 export default function NewCustomerModal({ open, onClose }: Props) {
@@ -60,13 +60,23 @@ export default function NewCustomerModal({ open, onClose }: Props) {
         setSaving(false);
         return;
       }
-      // 새 고객 상세로 이동
       router.push(`/customers/${encodeURIComponent(json.key)}`);
       onClose();
     } catch {
       setError("네트워크 오류가 발생했습니다.");
       setSaving(false);
     }
+  };
+
+  const inputBase = {
+    background: isDark ? "rgba(255,255,255,0.04)" : "rgba(26,28,51,0.03)",
+    border: `1px solid ${T.border}`,
+    color: T.text.primary,
+    borderRadius: "6px",
+    padding: "6px 10px",
+    width: "100%",
+    fontSize: "0.875rem",
+    outline: "none",
   };
 
   return (
@@ -90,23 +100,47 @@ export default function NewCustomerModal({ open, onClose }: Props) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* ── 서비스 드롭다운 (계약항목 컬럼에 저장) ── */}
+          <div className="sm:col-span-2">
+            <label className="block text-xs mb-1" style={{ color: T.text.muted }}>
+              서비스
+              <span className="ml-1 opacity-60">(비워두면 그룹유형·영업활동명으로 자동 추론)</span>
+            </label>
+            <select
+              value={form.계약항목 ?? ""}
+              onChange={(e) => set("계약항목", e.target.value)}
+              style={inputBase}
+            >
+              <option value="">— 자동 추론 —</option>
+              {SERVICE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* ── 나머지 필드 ── */}
           {FIELDS.map((f) => (
             <div key={f.key} className={f.key === "계약비고" ? "sm:col-span-2" : ""}>
               <label className="block text-xs mb-1" style={{ color: T.text.muted }}>
                 {f.label}
                 {f.required && <span style={{ color: "#ff6b6b" }}> *</span>}
               </label>
-              <input
-                value={form[f.key] ?? ""}
-                onChange={(e) => set(f.key, e.target.value)}
-                placeholder={f.placeholder}
-                className="w-full px-2.5 py-1.5 rounded-md text-sm outline-none"
-                style={{
-                  background: isDark ? "rgba(255,255,255,0.04)" : "rgba(26,28,51,0.03)",
-                  border: `1px solid ${T.border}`,
-                  color: T.text.primary,
-                }}
-              />
+              {f.key === "계약비고" ? (
+                <textarea
+                  value={form[f.key] ?? ""}
+                  onChange={(e) => set(f.key, e.target.value)}
+                  rows={3}
+                  style={{ ...inputBase, resize: "vertical" } as React.CSSProperties}
+                />
+              ) : (
+                <input
+                  value={form[f.key] ?? ""}
+                  onChange={(e) => set(f.key, e.target.value)}
+                  placeholder={f.placeholder}
+                  className="outline-none"
+                  style={inputBase}
+                />
+              )}
             </div>
           ))}
         </div>

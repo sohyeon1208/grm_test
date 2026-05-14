@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/layout/ThemeContext";
 import { DARK, LIGHT } from "@/lib/theme";
 import type { Customer } from "@/lib/customers";
-import { deriveContractItem } from "@/lib/contractItem";
+import { deriveContractItem, SERVICE_OPTIONS } from "@/lib/contractItem";
 
 type EditableFields = Pick<
   Customer,
-  "요금" | "계약만료일" | "라이선스수" | "MAU" | "그룹유형" | "최근활동일"
+  "계약항목" | "요금" | "계약만료일" | "라이선스수" | "MAU" | "그룹유형" | "최근활동일"
 >;
 
 type Props = { customer: Customer };
@@ -22,6 +22,7 @@ export default function ContractCard({ customer }: Props) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<EditableFields>({
+    계약항목: c.계약항목,
     요금: c.요금,
     계약만료일: c.계약만료일,
     라이선스수: c.라이선스수,
@@ -33,13 +34,14 @@ export default function ContractCard({ customer }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const derived = deriveContractItem({
-    계약항목: c.계약항목,
+    계약항목: isEditing ? draft.계약항목 : c.계약항목,
     그룹유형: isEditing ? draft.그룹유형 : c.그룹유형,
+    영업활동명: c.영업활동명,
   });
-  const 계약항목Auto = !c.계약항목.trim() && !!derived;
 
   function handleEdit() {
     setDraft({
+      계약항목: c.계약항목,
       요금: c.요금,
       계약만료일: c.계약만료일,
       라이선스수: c.라이선스수,
@@ -91,25 +93,6 @@ export default function ContractCard({ customer }: Props) {
     width: "100%",
     fontSize: "0.875rem",
   };
-
-  type RowConfig =
-    | { label: string; field: keyof EditableFields; type: "text" | "date" }
-    | { label: string; field: null; value: string; hint?: string };
-
-  const rows: RowConfig[] = [
-    {
-      label: "계약항목",
-      field: null,
-      value: derived || "—",
-      hint: 계약항목Auto ? "그룹유형 기반 자동 표시" : undefined,
-    },
-    { label: "요금", field: "요금", type: "text" },
-    { label: "계약 만료일", field: "계약만료일", type: "date" },
-    { label: "라이선스 수", field: "라이선스수", type: "text" },
-    { label: "MAU", field: "MAU", type: "text" },
-    { label: "그룹유형", field: "그룹유형", type: "text" },
-    { label: "최근 활동일", field: "최근활동일", type: "date" },
-  ];
 
   return (
     <section
@@ -163,32 +146,57 @@ export default function ContractCard({ customer }: Props) {
       )}
 
       <dl className="space-y-2">
-        {rows.map((r) => (
+        {/* 서비스(계약항목) */}
+        <div className="flex items-baseline gap-3 text-sm">
+          <dt className="w-24 shrink-0" style={{ color: T.text.muted }}>계약항목</dt>
+          <dd className="flex-1 break-words" style={{ color: T.text.primary }}>
+            {isEditing ? (
+              <select
+                value={draft.계약항목}
+                onChange={(e) => setDraft((d) => ({ ...d, 계약항목: e.target.value }))}
+                style={inputStyle}
+              >
+                <option value="">— 자동 추론 —</option>
+                {SERVICE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            ) : (
+              <>
+                {derived || "—"}
+                {!c.계약항목.trim() && derived && (
+                  <span className="ml-2 text-xs" style={{ color: T.text.muted }}>(auto)</span>
+                )}
+              </>
+            )}
+          </dd>
+        </div>
+
+        {/* 나머지 필드 */}
+        {(
+          [
+            { label: "요금",       field: "요금"       as const, type: "text" as const },
+            { label: "계약 만료일", field: "계약만료일"  as const, type: "date" as const },
+            { label: "라이선스 수", field: "라이선스수"  as const, type: "text" as const },
+            { label: "MAU",        field: "MAU"        as const, type: "text" as const },
+            { label: "그룹유형",   field: "그룹유형"    as const, type: "text" as const },
+            { label: "최근 활동일", field: "최근활동일"  as const, type: "date" as const },
+          ] as { label: string; field: keyof EditableFields; type: "text" | "date" }[]
+        ).map((r) => (
           <div key={r.label} className="flex items-baseline gap-3 text-sm">
-            <dt className="w-24 shrink-0" style={{ color: T.text.muted }}>
-              {r.label}
-            </dt>
+            <dt className="w-24 shrink-0" style={{ color: T.text.muted }}>{r.label}</dt>
             <dd className="flex-1 break-words" style={{ color: T.text.primary }}>
-              {r.field === null ? (
-                <>
-                  {r.value}
-                  {r.hint && (
-                    <span className="ml-2 text-xs" style={{ color: T.text.muted }}>
-                      (auto)
-                    </span>
-                  )}
-                </>
-              ) : isEditing ? (
+              {isEditing ? (
                 <input
                   type={r.type}
-                  value={draft[r.field]}
+                  value={draft[r.field] as string}
                   onChange={(e) =>
-                    setDraft((d) => ({ ...d, [r.field as string]: e.target.value }))
+                    setDraft((d) => ({ ...d, [r.field]: e.target.value }))
                   }
                   style={inputStyle}
                 />
               ) : (
-                c[r.field] || "—"
+                (c[r.field] as string) || "—"
               )}
             </dd>
           </div>

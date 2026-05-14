@@ -86,6 +86,7 @@ export default function CustomerKanban({ customers }: Props) {
                 const item = deriveContractItem({
                   계약항목: cust.계약항목,
                   그룹유형: cust.그룹유형,
+                  영업활동명: cust.영업활동명,
                 });
                 const key = cust.영업활동명 || cust.그룹ID || cust.그룹명;
                 return (
