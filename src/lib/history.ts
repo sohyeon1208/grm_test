@@ -76,17 +76,34 @@ export async function getHistory(): Promise<HistoryEntry[]> {
   return all.sort((a, b) => (b.날짜 || "").localeCompare(a.날짜 || ""));
 }
 
-/** 특정 고객(영업활동명 기준)의 히스토리만 필터. 그룹ID 보조 매칭 지원. */
+/** 특정 고객의 히스토리. 영업활동명 정확일치 → 그룹ID 정확일치 → 부분일치 순으로 매칭. */
 export async function getHistoryFor(
   영업활동명: string,
   options?: { 그룹ID?: string }
 ): Promise<HistoryEntry[]> {
   const all = await getHistory();
-  return all.filter((e) => {
-    if (영업활동명 && e.영업활동명 === 영업활동명) return true;
-    if (options?.그룹ID && e.그룹ID && e.그룹ID === options.그룹ID) return true;
-    return false;
-  });
+  const norm = (s: string) => s.trim().replace(/\s+/g, " ");
+  const key = norm(영업활동명);
+
+  // 1순위: 영업활동명 정확일치 (앞뒤 공백 + 연속 공백 정규화)
+  const exact = all.filter((e) => norm(e.영업활동명) === key);
+  if (exact.length > 0) return exact;
+
+  // 2순위: 그룹ID 정확일치
+  if (options?.그룹ID) {
+    const gid = options.그룹ID.trim();
+    const byId = all.filter((e) => e.그룹ID.trim() === gid);
+    if (byId.length > 0) return byId;
+  }
+
+  // 3순위: 영업활동명 부분일치 (빈 화면 방지용, 2글자 이상일 때만)
+  if (key.length >= 2) {
+    return all.filter(
+      (e) => norm(e.영업활동명).includes(key) || key.includes(norm(e.영업활동명))
+    );
+  }
+
+  return [];
 }
 
 /** 새 히스토리 한 건 추가 — 항상 "히스토리 입력" 탭에 append. */

@@ -11,24 +11,27 @@ import { google, sheets_v4 } from "googleapis";
 
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]; // 읽기+쓰기
 
-let cachedClient: sheets_v4.Sheets | null = null;
+function parsePrivateKey(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  // Vercel 환경변수는 실제 개행(\n) 또는 이스케이프된 \n 두 가지로 저장될 수 있음.
+  // 이미 실제 개행이 있으면 replace가 무해하게 통과하고,
+  // \n 두 글자로 저장된 경우 실제 개행으로 변환.
+  return raw.replace(/\\n/g, "\n");
+}
 
 function getAuth() {
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
   return new google.auth.GoogleAuth({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: privateKey,
+      private_key: parsePrivateKey(process.env.GOOGLE_PRIVATE_KEY),
     },
     scopes: SCOPES,
   });
 }
 
-/** sheets v4 클라이언트 (모듈 단위 캐시) */
+/** sheets v4 클라이언트 — Vercel 서버리스에서 stale auth 방지를 위해 캐시 없이 생성 */
 export function getSheetsClient(): sheets_v4.Sheets {
-  if (cachedClient) return cachedClient;
-  cachedClient = google.sheets({ version: "v4", auth: getAuth() });
-  return cachedClient;
+  return google.sheets({ version: "v4", auth: getAuth() });
 }
 
 export function getSheetId(): string {
