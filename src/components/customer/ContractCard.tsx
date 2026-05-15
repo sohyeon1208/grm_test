@@ -131,8 +131,13 @@ export default function ContractCard({ customer }: Props) {
         ) : (
           <button
             onClick={handleEdit}
-            className="text-xs px-2 py-1 rounded"
-            style={{ color: T.text.muted, border: `1px solid ${T.border}`, cursor: "pointer" }}
+            className="text-xs px-2.5 py-1 rounded font-medium"
+            style={{
+              color: isDark ? "#a5b4fc" : "#5b50d6",
+              border: `1px solid ${isDark ? "rgba(99,102,241,0.45)" : "rgba(91,80,214,0.35)"}`,
+              background: isDark ? "rgba(99,102,241,0.10)" : "rgba(91,80,214,0.07)",
+              cursor: "pointer",
+            }}
           >
             ✏️ 수정
           </button>

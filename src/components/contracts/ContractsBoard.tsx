@@ -15,6 +15,16 @@ type Props = {
   upcoming: number;
 };
 
+function daysUntilExpiry(dateStr: string): number | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return null;
+  return Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+const DEADLINE_FILTERS = ["전체", "D-7 이내", "D-30 이내"] as const;
+type DeadlineFilter = typeof DEADLINE_FILTERS[number];
+
 const SEARCH_HELP =
   "상단 검색창에 고객사명 일부를 입력하면 자동완성됩니다.\n" +
   "· 영업활동명, 그룹ID, 그룹명 세 가지를 모두 부분일치로 검색\n" +
@@ -54,6 +64,7 @@ export default function ContractsBoard({ customers, total, upcoming }: Props) {
   const T = isDark ? DARK : LIGHT;
   const [modalOpen, setModalOpen] = useState(false);
   const [serviceFilter, setServiceFilter] = useState("전체");
+  const [deadlineFilter, setDeadlineFilter] = useState<DeadlineFilter>("전체");
 
   // 서비스 목록 — SERVICE_OPTIONS 순서 유지, 실제 사용된 것만 표시
   const serviceOptions = useMemo(() => {
@@ -65,14 +76,27 @@ export default function ContractsBoard({ customers, total, upcoming }: Props) {
     return ["전체", ...SERVICE_OPTIONS.filter((s) => used.has(s))];
   }, [customers]);
 
-  // 서비스 필터 적용
+  // 서비스 필터 + 계약 임박 필터 적용
   const filtered = useMemo(() => {
-    if (serviceFilter === "전체") return customers;
-    return customers.filter((c) => {
-      const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
-      return item === serviceFilter;
-    });
-  }, [customers, serviceFilter]);
+    let list = customers;
+
+    if (serviceFilter !== "전체") {
+      list = list.filter((c) => {
+        const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
+        return item === serviceFilter;
+      });
+    }
+
+    if (deadlineFilter !== "전체") {
+      const limit = deadlineFilter === "D-7 이내" ? 7 : 30;
+      list = list.filter((c) => {
+        const days = daysUntilExpiry(c.계약만료일);
+        return days !== null && days >= 0 && days <= limit;
+      });
+    }
+
+    return list;
+  }, [customers, serviceFilter, deadlineFilter]);
 
   const filterBtn = (active: boolean) => ({
     padding: "4px 14px",
@@ -126,29 +150,60 @@ export default function ContractsBoard({ customers, total, upcoming }: Props) {
         </div>
       </div>
 
-      {/* 서비스 필터 */}
-      {serviceOptions.length > 2 && (
-        <div className="flex items-center gap-2 flex-wrap mb-5">
-          <span className="text-xs shrink-0" style={{ color: T.text.muted }}>
-            서비스별 보기
-          </span>
-          {serviceOptions.map((opt) => {
-            const count =
+      {/* 필터 행 */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-5">
+        {/* 서비스 필터 */}
+        {serviceOptions.length > 2 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs shrink-0" style={{ color: T.text.muted }}>서비스</span>
+            {serviceOptions.map((opt) => {
+              const count =
+                opt === "전체"
+                  ? customers.length
+                  : customers.filter((c) => {
+                      const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
+                      return item === opt;
+                    }).length;
+              return (
+                <button key={opt} onClick={() => setServiceFilter(opt)} style={filterBtn(serviceFilter === opt)}>
+                  {opt}
+                  <span className="ml-1 opacity-70">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 계약 임박 필터 */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs shrink-0" style={{ color: T.text.muted }}>계약 만료</span>
+          {DEADLINE_FILTERS.map((opt) => {
+            const active = deadlineFilter === opt;
+            const limit = opt === "D-7 이내" ? 7 : 30;
+            const accentColor = opt === "D-7 이내" ? "#ef4444" : "#f97316";
+            const count = opt === "전체"
+              ? customers.length
+              : customers.filter((c) => {
+                  const days = daysUntilExpiry(c.계약만료일);
+                  return days !== null && days >= 0 && days <= limit;
+                }).length;
+
+            const style: React.CSSProperties =
               opt === "전체"
-                ? customers.length
-                : customers.filter((c) => {
-                    const item = deriveContractItem({ 계약항목: c.계약항목, 그룹유형: c.그룹유형, 영업활동명: c.영업활동명 });
-                    return item === opt;
-                  }).length;
+                ? filterBtn(active)
+                : active
+                  ? { padding: "4px 14px", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", border: "none", background: accentColor, color: "#fff", transition: "all 0.15s" }
+                  : { padding: "4px 14px", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 400, cursor: "pointer", border: `1px solid ${accentColor}55`, background: T.bg.card, color: accentColor, transition: "all 0.15s" };
+
             return (
-              <button key={opt} onClick={() => setServiceFilter(opt)} style={filterBtn(serviceFilter === opt)}>
+              <button key={opt} onClick={() => setDeadlineFilter(opt)} style={style}>
                 {opt}
-                <span className="ml-1 opacity-70">({count})</span>
+                {opt !== "전체" && <span className="ml-1 opacity-80">({count})</span>}
               </button>
             );
           })}
         </div>
-      )}
+      </div>
 
       {/* 칸반 보드 */}
       <CustomerKanban customers={filtered} />

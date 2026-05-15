@@ -126,9 +126,14 @@ export default function CustomerHeader({ customer }: Props) {
         ) : (
           <button
             onClick={() => { setStageDraft(c.영업단계); setEditingStage(true); }}
-            className="text-xs px-2.5 py-1 rounded flex items-center gap-1.5"
+            className="text-xs px-2.5 py-1 rounded flex items-center gap-1.5 font-medium"
             title="계약상태 변경"
-            style={{ color: T.text.muted, border: `1px solid ${T.border}`, cursor: "pointer" }}
+            style={{
+              color: isDark ? "#a5b4fc" : "#5b50d6",
+              border: `1px solid ${isDark ? "rgba(99,102,241,0.45)" : "rgba(91,80,214,0.35)"}`,
+              background: isDark ? "rgba(99,102,241,0.10)" : "rgba(91,80,214,0.07)",
+              cursor: "pointer",
+            }}
           >
             <span
               className="w-2 h-2 rounded-full inline-block shrink-0"
