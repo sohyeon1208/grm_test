@@ -74,7 +74,7 @@ export default function Sidebar({ user }: Props) {
             style={{ background: "linear-gradient(90deg, #7B70EE, #00CFAA)" }}
           />
           <span className="font-semibold text-sm" style={{ color: T.text.primary }}>
-            구루미 통합
+            Gooroomee Sales
           </span>
         </div>
         <div className="mt-1 text-[11px]" style={{ color: T.text.muted }}>

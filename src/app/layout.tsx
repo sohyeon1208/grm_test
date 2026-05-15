@@ -5,7 +5,7 @@ import AppShell from "@/components/layout/AppShell";
 import { auth } from "@/auth";
 
 export const metadata: Metadata = {
-  title: "Gooroomee — Sales + CRM",
+  title: "Gooroomee Sales",
   description: "Gooroomee Sales Dashboard + CRM",
 };
 

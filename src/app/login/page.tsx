@@ -40,7 +40,7 @@ export default function LoginPage({
             }}
           />
           <h1 style={{ color: "#fff", fontSize: 20, fontWeight: 700, margin: 0 }}>
-            구루미 통합
+            Gooroomee Sales
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 4 }}>
             매출 · 고객 관리 시스템
