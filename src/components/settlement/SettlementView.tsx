@@ -5,258 +5,278 @@ import { useTheme } from "@/components/layout/ThemeContext";
 import { DARK, LIGHT } from "@/lib/theme";
 import type { Customer } from "@/lib/customers";
 
-type Period = "오늘" | "이번주" | "이번달";
+/* ───────────────────────── 정산일 파싱 ───────────────────────── */
 
-const PERIODS: Period[] = ["오늘", "이번주", "이번달"];
-
-/**
- * 정산일 문자열에서 날짜(1~31) 파싱.
- * "15일", "15", "말일" → 숫자 반환 (말일 → 해당월 마지막 날)
- */
-function parseSettlementDay(raw: string, year: number, month: number): number | null {
-  if (!raw) return null;
+function parseSettlementDay(raw: string): number {
+  if (!raw) return 99;
   const t = raw.trim();
-  if (t === "말일" || t === "말") {
-    return new Date(year, month, 0).getDate(); // month+1의 0일 = month의 마지막 날
-  }
+  if (t === "말일" || t === "말") return 31;
   const m = t.match(/(\d{1,2})/);
-  if (!m) return null;
+  if (!m) return 99;
   const d = parseInt(m[1], 10);
-  if (d < 1 || d > 31) return null;
-  return d;
+  return d >= 1 && d <= 31 ? d : 99;
 }
 
-function isInPeriod(day: number | null, period: Period, today: Date): boolean {
-  if (day === null) return false;
-  const y = today.getFullYear();
-  const mo = today.getMonth(); // 0-based
-  const todayD = today.getDate();
+/* ───────────────────── 정산 안내 템플릿 ─────────────────────── */
 
-  if (period === "오늘") return day === todayD;
+const TEMPLATES = [
+  {
+    label: "세금계산서",
+    color: "#818cf8",
+    bg: "rgba(99,102,241,0.10)",
+    border: "rgba(99,102,241,0.35)",
+    text: `안녕하세요,                 님
+구루미 권소현입니다.
 
-  if (period === "이번주") {
-    // 이번 주 월~일 날짜 범위
-    const dow = today.getDay(); // 0=Sun
-    const mondayOffset = dow === 0 ? -6 : 1 - dow;
-    const monday = new Date(today);
-    monday.setDate(todayD + mondayOffset);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+구루미 비즈         사용료 확인 후 견적서 작성하여 송부드립니다.
+사용 내역은 아래와 같으며, 청구 내역 확인 부탁드리겠습니다.
 
-    // 같은 달 내 범위만 비교 (단순화)
-    const startD = monday.getMonth() === mo ? monday.getDate() : 1;
-    const endD = sunday.getMonth() === mo ? sunday.getDate() : new Date(y, mo + 1, 0).getDate();
-    return day >= startD && day <= endD;
-  }
+[청구 내역]
+- 사용기간:
+- 사용인원:
+- 이용금액:
+- 발행일자:
+- 수신메일:
 
-  if (period === "이번달") return true; // 정산일이 있으면 이번달 해당
+첨부자료 확인 부탁드리며,
+확인 메일 주시면 위 내역으로 세금계산서 발행하겠습니다.
 
-  return false;
-}
+감사합니다.
+권소현 드림`,
+  },
+  {
+    label: "카드결제",
+    color: "#34d399",
+    bg: "rgba(52,211,153,0.10)",
+    border: "rgba(52,211,153,0.35)",
+    text: `안녕하세요                 님,
+구루미 권소현입니다.
 
-function dDay(dateStr: string): string {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return "";
-  const diff = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (diff < 0) return "만료";
-  if (diff === 0) return "D-0";
-  return `D-${diff}`;
-}
+구루미 비즈         사용료에 대한 증빙서류 전달드립니다.
+사용내역은 아래와 같으며, 청구내역 확인 부탁드리겠습니다.
 
-function copyTemplate(c: Customer) {
-  const text = [
-    `[정산 안내] ${c.세금계산서고객사명 || c.영업활동명}`,
-    ``,
-    `안녕하세요,`,
-    `${c.세금계산서고객사명 || c.그룹명} 정산 관련 안내드립니다.`,
-    ``,
-    `· 서비스: ${c.계약항목 || c.그룹유형 || "—"}`,
-    `· 요금: ${c.요금 || "—"}`,
-    `· 정산주기: ${c.정산주기 || "—"}`,
-    `· 정산일: ${c.정산일 || "—"}`,
-    `· 청구방법: ${c.청구방법 || "—"}`,
-    `· 정산방법: ${c.정산방법 || "—"}`,
-    ``,
-    `감사합니다.`,
-  ].join("\n");
-  navigator.clipboard.writeText(text).catch(() => {});
-}
+[청구내역]
+- 사용기간:
+- 사용분수:
+
+- 청구금액:
+
+- 정산방법: 카드결제(결제링크)
+전달드린 링크로 결제 부탁드리겠습니다.
+
+감사합니다
+권소현 드림`,
+  },
+  {
+    label: "나라빌 청구",
+    color: "#fb923c",
+    bg: "rgba(251,146,60,0.10)",
+    border: "rgba(251,146,60,0.35)",
+    text: `안녕하세요                 님,
+구루미 권소현입니다.
+
+구루미 비즈         이용 견적서 전달드립니다.
+최대 동시접속자 기준으로 견적서 작성되었습니다.
+
+[청구내역]
+사용기간:
+사용자수:
+청구금액:
+
+확인 부탁드리며, 확인 후 회신주시면 나라빌 청구 진행하도록 하겠습니다.
+
+감사합니다.
+권소현 드림`,
+  },
+] as const;
+
+/* ─────────────────────────── 메인 컴포넌트 ───────────────────── */
 
 type Props = { customers: Customer[] };
 
 export default function SettlementView({ customers }: Props) {
   const { isDark } = useTheme();
   const T = isDark ? DARK : LIGHT;
-  const [period, setPeriod] = useState<Period>("이번달");
-  const [copied, setCopied] = useState<string | null>(null);
+  const [copiedTemplate, setCopiedTemplate] = useState<string | null>(null);
 
-  const today = useMemo(() => new Date(), []);
+  // 정산일이 있는 고객만, 정산일 숫자 기준 오름차순 정렬
+  const sorted = useMemo(
+    () =>
+      customers
+        .filter((c) => c.정산일?.trim())
+        .sort((a, b) => parseSettlementDay(a.정산일) - parseSettlementDay(b.정산일)),
+    [customers]
+  );
 
-  // 정산일이 있는 고객 + 선택 기간에 해당하는 고객
-  const filtered = useMemo(() => {
-    return customers.filter((c) => {
-      if (!c.정산일) return false;
-      const day = parseSettlementDay(c.정산일, today.getFullYear(), today.getMonth() + 1);
-      return isInPeriod(day, period, today);
-    }).sort((a, b) => {
-      const da = parseSettlementDay(a.정산일, today.getFullYear(), today.getMonth() + 1) ?? 99;
-      const db = parseSettlementDay(b.정산일, today.getFullYear(), today.getMonth() + 1) ?? 99;
-      return da - db;
-    });
-  }, [customers, period, today]);
-
-  const tabStyle = (active: boolean): React.CSSProperties => ({
-    padding: "6px 20px",
-    borderRadius: "999px",
-    fontSize: "0.875rem",
-    fontWeight: active ? 600 : 400,
-    cursor: "pointer",
-    border: active ? "none" : `1px solid ${T.border}`,
-    background: active ? "linear-gradient(90deg, #7B70EE, #00CFAA)" : T.bg.card,
-    color: active ? "#fff" : T.text.secondary,
-    transition: "all 0.15s",
-  });
+  function copyTemplate(text: string, label: string) {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopiedTemplate(label);
+    setTimeout(() => setCopiedTemplate(null), 2000);
+  }
 
   return (
     <div className="px-6 py-6">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold" style={{ color: T.text.primary }}>정산 캘린더</h1>
-          <p className="text-sm mt-0.5" style={{ color: T.text.muted }}>
-            정산일 기준으로 대상 고객사를 확인합니다
-          </p>
-        </div>
-        <div
-          className="px-4 py-2 rounded-lg text-sm"
-          style={{ background: T.bg.card, border: `1px solid ${T.border}`, color: T.text.muted }}
-        >
-          {today.getFullYear()}년 {today.getMonth() + 1}월 {today.getDate()}일
-        </div>
+      {/* 페이지 헤더 */}
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold" style={{ color: T.text.primary }}>
+          정산 캘린더
+        </h1>
+        <p className="text-sm mt-0.5" style={{ color: T.text.muted }}>
+          정산일 순으로 정렬 · {sorted.length}개 고객사
+        </p>
       </div>
 
-      {/* 기간 탭 */}
-      <div className="flex items-center gap-2 mb-6">
-        {PERIODS.map((p) => (
-          <button key={p} onClick={() => setPeriod(p)} style={tabStyle(period === p)}>
-            {p}
-          </button>
-        ))}
-        <span className="text-xs ml-2" style={{ color: T.text.muted }}>
-          {filtered.length}건
-        </span>
-      </div>
+      {/* ── 정산 안내 템플릿 섹션 ── */}
+      <section
+        className="rounded-xl p-5 mb-8"
+        style={{ background: T.bg.card, border: `1px solid ${T.border}` }}
+      >
+        <h2 className="text-sm font-semibold mb-4" style={{ color: T.text.primary }}>
+          📨 정산 안내 메일 템플릿
+        </h2>
+        <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
+          {TEMPLATES.map((tpl) => {
+            const isCopied = copiedTemplate === tpl.label;
+            return (
+              <div
+                key={tpl.label}
+                className="rounded-lg p-4 flex flex-col gap-3"
+                style={{ background: tpl.bg, border: `1px solid ${tpl.border}` }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold" style={{ color: tpl.color }}>
+                    {tpl.label}
+                  </span>
+                  <button
+                    onClick={() => copyTemplate(tpl.text, tpl.label)}
+                    className="text-xs px-2.5 py-1 rounded font-medium transition-all"
+                    style={{
+                      background: isCopied ? tpl.color : "transparent",
+                      color: isCopied ? "#fff" : tpl.color,
+                      border: `1px solid ${tpl.border}`,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {isCopied ? "✓ 복사됨" : "📋 복사"}
+                  </button>
+                </div>
+                <pre
+                  className="text-xs whitespace-pre-wrap leading-relaxed"
+                  style={{ color: T.text.secondary, fontFamily: "inherit" }}
+                >
+                  {tpl.text}
+                </pre>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
-      {/* 목록 */}
-      {filtered.length === 0 ? (
+      {/* ── 고객사 정산일 목록 ── */}
+      {sorted.length === 0 ? (
         <div
-          className="flex flex-col items-center justify-center py-20 rounded-xl"
+          className="flex flex-col items-center justify-center py-16 rounded-xl"
           style={{ background: T.bg.card, border: `1px solid ${T.border}` }}
         >
           <span className="text-3xl mb-3">📭</span>
           <p className="text-sm" style={{ color: T.text.muted }}>
-            {period} 정산 대상 고객이 없습니다
+            정산일이 등록된 고객사가 없습니다
           </p>
         </div>
       ) : (
-        <div className="grid gap-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))" }}>
-          {filtered.map((c) => {
-            const key = c.영업활동명 || c.그룹ID;
-            const isCopied = copied === key;
-            const dd = dDay(c.계약만료일);
+        <div className="overflow-hidden rounded-xl" style={{ border: `1px solid ${T.border}` }}>
+          {/* 테이블 헤더 */}
+          <div
+            className="grid text-xs font-medium px-4 py-2"
+            style={{
+              gridTemplateColumns: "2fr 1fr 1fr 2fr 1fr 2fr",
+              background: isDark ? "rgba(255,255,255,0.04)" : "rgba(26,28,51,0.04)",
+              color: T.text.muted,
+              borderBottom: `1px solid ${T.border}`,
+            }}
+          >
+            <span>고객사</span>
+            <span>정산일</span>
+            <span>정산주기</span>
+            <span>요금</span>
+            <span>청구방법</span>
+            <span>정산담당자</span>
+          </div>
+
+          {/* 테이블 바디 */}
+          {sorted.map((c, i) => {
+            const day = parseSettlementDay(c.정산일);
+            const today = new Date().getDate();
+            const isToday = day === today;
+            const isClose = Math.abs(day - today) <= 3 && day !== 99;
 
             return (
               <div
-                key={key}
-                className="rounded-xl p-5 flex flex-col gap-3"
-                style={{ background: T.bg.card, border: `1px solid ${T.border}` }}
+                key={c.영업활동명 || c.그룹ID || i}
+                className="grid text-sm px-4 py-3 items-center"
+                style={{
+                  gridTemplateColumns: "2fr 1fr 1fr 2fr 1fr 2fr",
+                  borderBottom: i < sorted.length - 1 ? `1px solid ${T.border}` : "none",
+                  background: isToday
+                    ? isDark ? "rgba(0,207,170,0.07)" : "rgba(10,167,140,0.05)"
+                    : isClose
+                    ? isDark ? "rgba(251,146,60,0.05)" : "rgba(251,146,60,0.04)"
+                    : "transparent",
+                }}
               >
-                {/* 상단 */}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs mb-0.5" style={{ color: T.text.muted }}>
-                      {c.그룹명 || "—"}
+                {/* 고객사명 */}
+                <div>
+                  <p className="font-medium truncate" style={{ color: T.text.primary }}>
+                    {c.영업활동명 || c.그룹명}
+                  </p>
+                  {c.세금계산서고객사명 && c.세금계산서고객사명 !== c.영업활동명 && (
+                    <p className="text-xs truncate" style={{ color: T.text.muted }}>
+                      {c.세금계산서고객사명}
                     </p>
-                    <p className="font-semibold text-sm leading-tight" style={{ color: T.text.primary }}>
-                      {c.영업활동명 || c.그룹명}
-                    </p>
-                  </div>
-                  <div className="shrink-0 flex flex-col items-end gap-1">
-                    <span
-                      className="text-xs px-2 py-0.5 rounded font-medium"
-                      style={{
-                        background: isDark ? "rgba(0,207,170,0.15)" : "rgba(10,167,140,0.10)",
-                        color: isDark ? "#00CFAA" : "#0aa78c",
-                      }}
-                    >
-                      {c.정산일} 정산
-                    </span>
-                    {dd && (
-                      <span
-                        className="text-[11px] px-1.5 py-0.5 rounded"
-                        style={{
-                          background: dd === "만료" ? "rgba(107,114,128,0.15)" : "rgba(239,68,68,0.10)",
-                          color: dd === "만료" ? T.text.muted : "#ef4444",
-                        }}
-                      >
-                        계약 {dd}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
 
-                {/* 정산 정보 */}
-                <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  {[
-                    { label: "정산주기", value: c.정산주기 },
-                    { label: "요금", value: c.요금 },
-                    { label: "청구방법", value: c.청구방법 },
-                    { label: "정산방법", value: c.정산방법 },
-                    { label: "정산담당자", value: c.정산담당자 },
-                    { label: "세금계산서", value: c.세금계산서고객사명 },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="flex gap-1.5">
-                      <dt style={{ color: T.text.muted, minWidth: 56 }}>{label}</dt>
-                      <dd style={{ color: T.text.primary }}>{value || "—"}</dd>
-                    </div>
-                  ))}
-                </dl>
-
-                {/* 비고 */}
-                {c.계약비고 && (
-                  <p
-                    className="text-xs rounded p-2 whitespace-pre-wrap"
+                {/* 정산일 */}
+                <div>
+                  <span
+                    className="text-xs px-2 py-0.5 rounded font-medium"
                     style={{
-                      background: isDark ? "rgba(255,255,255,0.04)" : "rgba(26,28,51,0.04)",
-                      color: T.text.secondary,
+                      background: isToday
+                        ? isDark ? "rgba(0,207,170,0.20)" : "rgba(10,167,140,0.12)"
+                        : isDark ? "rgba(255,255,255,0.07)" : "rgba(26,28,51,0.06)",
+                      color: isToday
+                        ? isDark ? "#00CFAA" : "#0aa78c"
+                        : T.text.secondary,
                     }}
                   >
-                    {c.계약비고}
-                  </p>
-                )}
+                    {c.정산일}
+                  </span>
+                  {isToday && (
+                    <span className="ml-1.5 text-[10px]" style={{ color: isDark ? "#00CFAA" : "#0aa78c" }}>
+                      오늘
+                    </span>
+                  )}
+                </div>
 
-                {/* 이메일 템플릿 복사 버튼 */}
-                <button
-                  onClick={() => {
-                    copyTemplate(c);
-                    setCopied(key);
-                    setTimeout(() => setCopied(null), 2000);
-                  }}
-                  className="text-xs px-3 py-1.5 rounded-md w-full text-center font-medium transition-all"
-                  style={{
-                    background: isCopied
-                      ? (isDark ? "rgba(0,207,170,0.15)" : "rgba(10,167,140,0.10)")
-                      : (isDark ? "rgba(99,102,241,0.10)" : "rgba(91,80,214,0.07)"),
-                    color: isCopied
-                      ? (isDark ? "#00CFAA" : "#0aa78c")
-                      : (isDark ? "#a5b4fc" : "#5b50d6"),
-                    border: `1px solid ${isCopied ? (isDark ? "rgba(0,207,170,0.3)" : "rgba(10,167,140,0.3)") : (isDark ? "rgba(99,102,241,0.3)" : "rgba(91,80,214,0.25)")}`,
-                    cursor: "pointer",
-                  }}
-                >
-                  {isCopied ? "✓ 복사됨" : "📋 정산 안내 템플릿 복사"}
-                </button>
+                {/* 정산주기 */}
+                <span className="text-xs" style={{ color: T.text.secondary }}>
+                  {c.정산주기 || "—"}
+                </span>
+
+                {/* 요금 */}
+                <span className="text-xs" style={{ color: T.text.secondary }}>
+                  {c.요금 || "—"}
+                </span>
+
+                {/* 청구방법 */}
+                <span className="text-xs" style={{ color: T.text.secondary }}>
+                  {c.청구방법 || "—"}
+                </span>
+
+                {/* 정산담당자 */}
+                <span className="text-xs" style={{ color: T.text.secondary }}>
+                  {c.정산담당자 || "—"}
+                </span>
               </div>
             );
           })}
