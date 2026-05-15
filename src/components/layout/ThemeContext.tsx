@@ -14,13 +14,14 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const STORAGE_KEY = "gooroomee-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDark, setIsDarkState] = useState(true);
+  const [isDark, setIsDarkState] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const saved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
     if (saved === "light") setIsDarkState(false);
-    if (saved === "dark") setIsDarkState(true);
+    else if (saved === "dark") setIsDarkState(true);
+    // saved 없으면 기본값 false(라이트) 유지
     setMounted(true);
   }, []);
 
@@ -45,7 +46,7 @@ export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
     // 컨텍스트 외부에서 사용 시 안전한 기본값
-    return { isDark: true, setIsDark: () => {}, toggle: () => {}, mounted: false };
+    return { isDark: false, setIsDark: () => {}, toggle: () => {}, mounted: false };
   }
   return ctx;
 }

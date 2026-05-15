@@ -24,7 +24,7 @@ export default function AppShell({
 
   if (!mounted) {
     return (
-      <div className="min-h-screen" style={{ background: DARK.bg.page }} />
+      <div className="min-h-screen" style={{ background: LIGHT.bg.page }} />
     );
   }
 
