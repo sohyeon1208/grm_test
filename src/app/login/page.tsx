@@ -12,16 +12,17 @@ export default function LoginPage({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#0f1117",
+        background: "#F0F2F8",
       }}
     >
       <div
         style={{
-          width: 360,
-          padding: "40px 36px",
-          borderRadius: 16,
-          background: "#1a1c2e",
-          border: "1px solid rgba(255,255,255,0.08)",
+          width: 380,
+          padding: "44px 40px",
+          borderRadius: 20,
+          background: "#ffffff",
+          border: "1px solid rgba(26,28,51,0.08)",
+          boxShadow: "0 8px 40px rgba(26,28,51,0.10)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -32,17 +33,17 @@ export default function LoginPage({
         <div style={{ textAlign: "center" }}>
           <div
             style={{
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               borderRadius: "50%",
               background: "linear-gradient(135deg, #7B70EE, #00CFAA)",
-              margin: "0 auto 12px",
+              margin: "0 auto 14px",
             }}
           />
-          <h1 style={{ color: "#fff", fontSize: 20, fontWeight: 700, margin: 0 }}>
+          <h1 style={{ color: "rgba(26,28,51,0.9)", fontSize: 22, fontWeight: 700, margin: 0 }}>
             Gooroomee Sales
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, marginTop: 4 }}>
+          <p style={{ color: "rgba(26,28,51,0.4)", fontSize: 13, marginTop: 6 }}>
             매출 · 고객 관리 시스템
           </p>
         </div>
@@ -62,11 +63,11 @@ export default function LoginPage({
             type="submit"
             style={{
               width: "100%",
-              padding: "12px 0",
+              padding: "13px 0",
               borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(255,255,255,0.05)",
-              color: "#fff",
+              border: "1px solid rgba(26,28,51,0.13)",
+              background: "#ffffff",
+              color: "rgba(26,28,51,0.8)",
               fontSize: 14,
               fontWeight: 500,
               cursor: "pointer",
@@ -74,6 +75,7 @@ export default function LoginPage({
               alignItems: "center",
               justifyContent: "center",
               gap: 10,
+              boxShadow: "0 1px 4px rgba(26,28,51,0.07)",
             }}
           >
             <GoogleIcon />
@@ -81,7 +83,7 @@ export default function LoginPage({
           </button>
         </form>
 
-        <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 11, textAlign: "center" }}>
+        <p style={{ color: "rgba(26,28,51,0.3)", fontSize: 11, textAlign: "center" }}>
           @gooroomee.com 계정만 접속 가능합니다
         </p>
       </div>
@@ -108,9 +110,9 @@ async function ErrorMessage({
         width: "100%",
         padding: "10px 14px",
         borderRadius: 8,
-        background: "rgba(239,68,68,0.12)",
-        border: "1px solid rgba(239,68,68,0.3)",
-        color: "#f87171",
+        background: "rgba(239,68,68,0.08)",
+        border: "1px solid rgba(239,68,68,0.25)",
+        color: "#dc2626",
         fontSize: 13,
         textAlign: "center",
       }}
