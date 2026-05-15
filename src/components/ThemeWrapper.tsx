@@ -13,7 +13,7 @@ export default function ThemeWrapper({ rows }: { rows: SalesRow[] }) {
   const { isDark, mounted } = useTheme();
 
   if (!mounted) {
-    return <div className="min-h-screen" style={{ background: "#13141F" }} />;
+    return <div className="min-h-screen" style={{ background: "#F0F2F8" }} />;
   }
 
   return isDark ? <Dashboard rows={rows} /> : <DashboardLight rows={rows} />;
