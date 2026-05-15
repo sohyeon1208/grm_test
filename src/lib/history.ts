@@ -1,6 +1,6 @@
 import { hasGoogleEnv, readRange, appendRow } from "@/lib/google";
 
-export const HISTORY_ARCHIVE_SHEET = "🗂️ 히스토리 전체";
+export const HISTORY_ARCHIVE_SHEET = "히스토리 전체";
 export const HISTORY_INPUT_SHEET = "히스토리 입력";
 
 export type HistoryEntry = {
