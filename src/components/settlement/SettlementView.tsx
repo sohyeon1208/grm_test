@@ -47,6 +47,8 @@ const TEMPLATES = [
     color: "#818cf8",
     border: "rgba(99,102,241,0.40)",
     bg: "rgba(99,102,241,0.10)",
+    darkBg: "#4338ca",
+    darkColor: "#fff",
     text: `안녕하세요,                 님
 구루미         입니다.
 
@@ -71,6 +73,8 @@ const TEMPLATES = [
     color: "#34d399",
     border: "rgba(52,211,153,0.40)",
     bg: "rgba(52,211,153,0.10)",
+    darkBg: "#065f46",
+    darkColor: "#6ee7b7",
     text: `안녕하세요                 님,
 구루미         입니다.
 
@@ -94,6 +98,8 @@ const TEMPLATES = [
     color: "#fb923c",
     border: "rgba(251,146,60,0.40)",
     bg: "rgba(251,146,60,0.10)",
+    darkBg: "#92400e",
+    darkColor: "#fcd34d",
     text: `안녕하세요                 님,
 구루미         입니다.
 
@@ -110,7 +116,7 @@ const TEMPLATES = [
 감사합니다.
     드림`,
   },
-] as const;
+];
 
 /* ─────────────────────────── 메인 컴포넌트 ───────────────────── */
 
@@ -182,9 +188,13 @@ export default function SettlementView({ customers }: Props) {
                 onClick={() => copyTemplate(tpl.text, tpl.label)}
                 className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
                 style={{
-                  background: isCopied ? tpl.color : tpl.bg,
-                  color: isCopied ? "#fff" : tpl.color,
-                  border: `1px solid ${tpl.border}`,
+                  background: isCopied
+                    ? tpl.color
+                    : isDark ? tpl.darkBg : tpl.bg,
+                  color: isCopied
+                    ? "#fff"
+                    : isDark ? tpl.darkColor : tpl.color,
+                  border: `1px solid ${isCopied ? tpl.color : tpl.border}`,
                   cursor: "pointer",
                 }}
               >
