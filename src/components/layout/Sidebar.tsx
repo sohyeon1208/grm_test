@@ -4,12 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "./ThemeContext";
 import { DARK, LIGHT } from "@/lib/theme";
+import { signOut } from "next-auth/react";
 
 type MenuItem = {
   label: string;
   href: string;
   icon: React.ReactNode;
   match?: (path: string) => boolean;
+};
+
+type UserInfo = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
 };
 
 const ICON = (path: string) => (
@@ -39,7 +46,9 @@ const MENU: MenuItem[] = [
   },
 ];
 
-export default function Sidebar() {
+type Props = { user?: UserInfo };
+
+export default function Sidebar({ user }: Props) {
   const pathname = usePathname() || "/";
   const { isDark, toggle, mounted } = useTheme();
   const T = isDark ? DARK : LIGHT;
@@ -100,8 +109,57 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* 하단 — 테마 토글 */}
-      <div className="px-3 py-3" style={{ borderTop: `1px solid ${T.border}` }}>
+      {/* 하단 */}
+      <div className="px-3 py-3 space-y-2" style={{ borderTop: `1px solid ${T.border}` }}>
+        {/* 로그인된 사용자 정보 */}
+        {user && (
+          <div
+            className="flex items-center gap-2 px-3 py-2 rounded-md"
+            style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(26,28,51,0.04)" }}
+          >
+            {user.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.image}
+                alt={user.name ?? ""}
+                width={24}
+                height={24}
+                className="rounded-full shrink-0"
+              />
+            ) : (
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0"
+                style={{ background: "linear-gradient(135deg, #7B70EE, #00CFAA)", color: "#fff" }}
+              >
+                {user.name?.[0] ?? "?"}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate" style={{ color: T.text.primary }}>
+                {user.name ?? "—"}
+              </p>
+              <p className="text-[10px] truncate" style={{ color: T.text.muted }}>
+                {user.email ?? ""}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 로그아웃 */}
+        {user && (
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors"
+            style={{ color: T.text.muted, cursor: "pointer" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+            <span>로그아웃</span>
+          </button>
+        )}
+
+        {/* 테마 토글 */}
         <button
           onClick={toggle}
           disabled={!mounted}

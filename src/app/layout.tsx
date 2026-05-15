@@ -2,17 +2,20 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeContext";
 import AppShell from "@/components/layout/AppShell";
+import { auth } from "@/auth";
 
 export const metadata: Metadata = {
   title: "Gooroomee — Sales + CRM",
   description: "Gooroomee Sales Dashboard + CRM",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+
   return (
     <html lang="ko" className="h-full">
       <head>
@@ -23,7 +26,11 @@ export default function RootLayout({
       </head>
       <body className="min-h-full">
         <ThemeProvider>
-          <AppShell>{children}</AppShell>
+          {session ? (
+            <AppShell user={session.user}>{children}</AppShell>
+          ) : (
+            children
+          )}
         </ThemeProvider>
       </body>
     </html>
