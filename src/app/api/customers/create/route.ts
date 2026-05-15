@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       계약만료일: String(body.계약만료일 ?? "").trim(),
       라이선스수: String(body.라이선스수 ?? "").trim(),
       MAU: String(body.MAU ?? "").trim(),
+      계약시작일: String(body.계약시작일 ?? "").trim(),
     });
 
     return NextResponse.json({ ok: true, key: 영업활동명 });

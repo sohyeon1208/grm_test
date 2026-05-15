@@ -1,4 +1,4 @@
-import { hasGoogleEnv, readRange, appendRow } from "@/lib/google";
+import { hasGoogleEnv, readRange, appendRow, updateRange, deleteSheetRow } from "@/lib/google";
 
 export const HISTORY_ARCHIVE_SHEET = "히스토리 전체";
 export const HISTORY_INPUT_SHEET = "히스토리 입력";
@@ -131,6 +131,29 @@ export async function getHistoryFor(
   }
 
   return [];
+}
+
+function sheetNameFor(source: "archive" | "input"): string {
+  return source === "archive" ? HISTORY_ARCHIVE_SHEET : HISTORY_INPUT_SHEET;
+}
+
+/** 히스토리 행 삭제 */
+export async function deleteHistory(
+  source: "archive" | "input",
+  rowIndex: number
+): Promise<void> {
+  await deleteSheetRow(sheetNameFor(source), rowIndex);
+}
+
+/** 히스토리 행 수정 — 날짜(B), 유형(C), 내용(G)만 업데이트 */
+export async function updateHistory(
+  source: "archive" | "input",
+  rowIndex: number,
+  fields: { 날짜: string; 유형: string; 내용: string }
+): Promise<void> {
+  const sheet = sheetNameFor(source);
+  await updateRange(`${sheet}!B${rowIndex}:C${rowIndex}`, [[fields.날짜, fields.유형]]);
+  await updateRange(`${sheet}!G${rowIndex}`, [[fields.내용]]);
 }
 
 /**

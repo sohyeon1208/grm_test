@@ -75,17 +75,25 @@ export default function GlobalSearch() {
     setQ("");
   };
 
+  const goSearch = () => {
+    const term = q.trim();
+    if (term.length < 2) return;
+    router.push(`/customers?q=${encodeURIComponent(term)}`);
+    setOpen(false);
+    setQ("");
+  };
+
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!open) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      setOpen(true);
       setHi((i) => Math.min(i + 1, hits.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHi((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (hits[hi]) go(hits[hi]);
+      goSearch();
     } else if (e.key === "Escape") {
       setOpen(false);
     }

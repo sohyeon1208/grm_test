@@ -50,7 +50,7 @@ export default function AddHistoryModal({
       const res = await fetch("/api/history/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 날짜, 유형, 영업활동명, 그룹ID, 영업단계, 내용 }),
+        body: JSON.stringify({ 날짜, 유형, 영업활동명, 그룹ID: "", 영업단계: "", 내용 }),
       });
       const json = await res.json();
       if (!json.ok) {

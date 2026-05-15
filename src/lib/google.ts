@@ -121,3 +121,35 @@ export async function updateRange(
     requestBody: { values },
   });
 }
+
+/** 시트 탭의 numeric sheetId 조회 */
+async function getNumericSheetId(sheets: sheets_v4.Sheets, sheetName: string): Promise<number> {
+  const spreadsheetId = getSheetId();
+  const meta = await sheets.spreadsheets.get({ spreadsheetId });
+  const tab = meta.data.sheets?.find((s) => s.properties?.title === sheetName);
+  if (tab?.properties?.sheetId == null) throw new Error(`Sheet tab "${sheetName}" not found`);
+  return tab.properties.sheetId;
+}
+
+/** 특정 행 삭제 (rowIndex는 1-based 시트 행 번호). */
+export async function deleteSheetRow(sheetName: string, rowIndex: number): Promise<void> {
+  const sheets = getSheetsClient();
+  const sheetId = await getNumericSheetId(sheets, sheetName);
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: getSheetId(),
+    requestBody: {
+      requests: [
+        {
+          deleteDimension: {
+            range: {
+              sheetId,
+              dimension: "ROWS",
+              startIndex: rowIndex - 1, // 0-based
+              endIndex: rowIndex,
+            },
+          },
+        },
+      ],
+    },
+  });
+}

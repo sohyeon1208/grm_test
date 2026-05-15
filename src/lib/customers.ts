@@ -1,4 +1,4 @@
-import { hasGoogleEnv, readRange, updateRange, appendRow } from "@/lib/google";
+import { hasGoogleEnv, readRange, updateRange, appendRow, deleteSheetRow } from "@/lib/google";
 
 /**
  * 고객사 마스터 데이터.
@@ -49,6 +49,7 @@ export type Customer = {
   계약만료일: string;
   라이선스수: string;
   MAU: string;
+  계약시작일: string; // 열 S (index 18)
 };
 
 const s = (v: unknown): string => (v == null ? "" : String(v));
@@ -74,6 +75,7 @@ function rowToCustomer(row: string[], rowIndex: number): Customer {
     계약만료일: s(row[15]),
     라이선스수: s(row[16]),
     MAU: s(row[17]),
+    계약시작일: s(row[18]),
   };
 }
 
@@ -97,6 +99,7 @@ function customerToRow(c: Omit<Customer, "rowIndex">): string[] {
     c.계약만료일,
     c.라이선스수,
     c.MAU,
+    c.계약시작일,
   ];
 }
 
@@ -109,7 +112,7 @@ function isRealCustomer(c: Customer): boolean {
 export async function getCustomers(): Promise<Customer[]> {
   if (!hasGoogleEnv()) return [];
   try {
-    const rows = await readRange(`${CUSTOMERS_SHEET_NAME}!A${DATA_START_ROW}:R`);
+    const rows = await readRange(`${CUSTOMERS_SHEET_NAME}!A${DATA_START_ROW}:S`);
     return rows
       .map((row, idx) => rowToCustomer(row, DATA_START_ROW + idx))
       .filter(isRealCustomer);
@@ -165,6 +168,7 @@ const EMPTY_CUSTOMER: Omit<Customer, "rowIndex"> = {
   계약만료일: "",
   라이선스수: "",
   MAU: "",
+  계약시작일: "",
 };
 
 export async function addCustomer(
@@ -174,7 +178,16 @@ export async function addCustomer(
   }
 ): Promise<void> {
   const merged: Omit<Customer, "rowIndex"> = { ...EMPTY_CUSTOMER, ...partial };
-  await appendRow(`${CUSTOMERS_SHEET_NAME}!A:R`, customerToRow(merged));
+  await appendRow(`${CUSTOMERS_SHEET_NAME}!A:S`, customerToRow(merged));
+}
+
+export async function deleteCustomer(
+  key: string
+): Promise<{ ok: boolean; reason?: string }> {
+  const target = await findCustomerByKey(key);
+  if (!target) return { ok: false, reason: "고객을 찾을 수 없습니다" };
+  await deleteSheetRow(CUSTOMERS_SHEET_NAME, target.rowIndex);
+  return { ok: true };
 }
 
 export async function updateCustomerFields(
@@ -188,7 +201,7 @@ export async function updateCustomerFields(
   const merged: Omit<Customer, "rowIndex"> = { ...current, ...patch };
 
   await updateRange(
-    `${CUSTOMERS_SHEET_NAME}!A${rowIndex}:R${rowIndex}`,
+    `${CUSTOMERS_SHEET_NAME}!A${rowIndex}:S${rowIndex}`,
     [customerToRow(merged)]
   );
   return { ok: true, rowIndex };

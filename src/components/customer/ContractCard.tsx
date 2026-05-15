@@ -9,7 +9,7 @@ import { deriveContractItem, SERVICE_OPTIONS } from "@/lib/contractItem";
 
 type EditableFields = Pick<
   Customer,
-  "계약항목" | "요금" | "계약만료일" | "라이선스수" | "MAU" | "그룹유형" | "최근활동일"
+  "계약항목" | "요금" | "계약시작일" | "계약만료일" | "라이선스수" | "MAU" | "그룹유형" | "최근활동일"
 >;
 
 type Props = { customer: Customer };
@@ -24,6 +24,7 @@ export default function ContractCard({ customer }: Props) {
   const [draft, setDraft] = useState<EditableFields>({
     계약항목: c.계약항목,
     요금: c.요금,
+    계약시작일: c.계약시작일,
     계약만료일: c.계약만료일,
     라이선스수: c.라이선스수,
     MAU: c.MAU,
@@ -43,6 +44,7 @@ export default function ContractCard({ customer }: Props) {
     setDraft({
       계약항목: c.계약항목,
       요금: c.요금,
+      계약시작일: c.계약시작일,
       계약만료일: c.계약만료일,
       라이선스수: c.라이선스수,
       MAU: c.MAU,
@@ -181,6 +183,7 @@ export default function ContractCard({ customer }: Props) {
         {(
           [
             { label: "요금",       field: "요금"       as const, type: "text" as const },
+            { label: "계약 시작일", field: "계약시작일"  as const, type: "date" as const },
             { label: "계약 만료일", field: "계약만료일"  as const, type: "date" as const },
             { label: "라이선스 수", field: "라이선스수"  as const, type: "text" as const },
             { label: "MAU",        field: "MAU"        as const, type: "text" as const },

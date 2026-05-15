@@ -20,6 +20,7 @@ const FIELDS: { key: string; label: string; required?: boolean; placeholder?: st
   { key: "요금",        label: "요금",        placeholder: "예: 49,000" },
   { key: "청구방법",    label: "청구방법",    placeholder: "예: 스마트빌 / 나라빌" },
   { key: "세금계산서고객사명", label: "세금계산서 고객사명" },
+  { key: "계약시작일",  label: "계약 시작일", placeholder: "yyyy-MM-dd" },
   { key: "계약만료일",  label: "계약 만료일", placeholder: "yyyy-MM-dd" },
   { key: "라이선스수",  label: "라이선스 수" },
   { key: "MAU",         label: "MAU" },

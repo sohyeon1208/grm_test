@@ -1,10 +1,28 @@
+import Link from "next/link";
 import { getCustomers } from "@/lib/customers";
 import ContractsBoard from "@/components/contracts/ContractsBoard";
+import CustomerSearchResults from "@/components/contracts/CustomerSearchResults";
 
 export const dynamic = "force-dynamic";
 
-export default async function CustomersPage() {
+type PageProps = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+export default async function CustomersPage({ searchParams }: PageProps) {
+  const { q } = await searchParams;
   const customers = await getCustomers();
+
+  if (q && q.trim().length >= 2) {
+    const term = q.trim().toLowerCase();
+    const filtered = customers.filter(
+      (c) =>
+        c.영업활동명?.toLowerCase().includes(term) ||
+        c.그룹명?.toLowerCase().includes(term) ||
+        c.그룹ID?.toLowerCase().includes(term)
+    );
+    return <CustomerSearchResults customers={filtered} q={q.trim()} />;
+  }
 
   const now = Date.now();
   let upcoming = 0;

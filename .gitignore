@@ -33,10 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# service account keys (JSON) - NEVER commit
+# service account keys / OAuth secrets (JSON) - NEVER commit
 *service-account*.json
 *-iam-*.json
 crypto-resolver-*.json
+client_secret*.json
 
 # local debug scripts (filename starts with underscore)
 /_*.mjs

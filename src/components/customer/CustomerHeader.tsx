@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/layout/ThemeContext";
 import { DARK, LIGHT } from "@/lib/theme";
 import type { Customer } from "@/lib/customers";
+import EditCustomerModal from "./EditCustomerModal";
 
 type Props = { customer: Customer };
 
@@ -39,6 +40,7 @@ export default function CustomerHeader({ customer }: Props) {
   const [stageDraft, setStageDraft] = useState(c.영업단계);
   const [saving, setSaving] = useState(false);
   const [stageError, setStageError] = useState("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   async function saveStage() {
     setSaving(true);
@@ -80,8 +82,14 @@ export default function CustomerHeader({ customer }: Props) {
       className="px-6 py-5 mb-5 rounded-lg relative"
       style={{ background: T.bg.card, border: `1px solid ${T.border}` }}
     >
-      {/* 우상단 — 계약상태 편집 */}
-      <div className="absolute top-4 right-5 flex flex-col items-end gap-1">
+      <EditCustomerModal
+        customer={c}
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+      />
+
+      {/* 우상단 — 고객 편집 + 계약상태 편집 */}
+      <div className="absolute top-4 right-5 flex flex-col items-end gap-2">
         {editingStage ? (
           <div className="flex items-center gap-2">
             <select
@@ -145,6 +153,22 @@ export default function CustomerHeader({ customer }: Props) {
         {stageError && (
           <p className="text-[10px]" style={{ color: "#f87171" }}>{stageError}</p>
         )}
+        {/* 고객 정보 수정 버튼 */}
+        <button
+          onClick={() => setEditModalOpen(true)}
+          className="text-xs px-2.5 py-1 rounded flex items-center gap-1.5"
+          style={{
+            color: T.text.muted,
+            border: `1px solid ${T.border}`,
+            cursor: "pointer",
+          }}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          고객 정보 수정
+        </button>
       </div>
 
       <div className="text-xs mb-1" style={{ color: T.text.muted }}>
