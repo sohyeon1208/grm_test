@@ -145,12 +145,13 @@ export async function addHistory(entry: {
   영업단계?: string;
   내용: string;
 }): Promise<void> {
-  await appendRow(`${HISTORY_INPUT_SHEET}!B:G`, [
-    entry.날짜,
-    entry.유형,
-    entry.영업활동명,
-    entry.그룹ID ?? "",
-    entry.영업단계 ?? "",
-    entry.내용,
+  await appendRow(`${HISTORY_INPUT_SHEET}!A:G`, [
+    "",                   // A: no. (공란)
+    entry.날짜,           // B: 날짜
+    entry.유형,           // C: 유형
+    entry.영업활동명,     // D: 영업활동명
+    entry.그룹ID ?? "",   // E: 그룹ID
+    entry.영업단계 ?? "", // F: 영업단계
+    entry.내용,           // G: 히스토리내용
   ]);
 }

@@ -6,6 +6,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          prompt: "select_account", // 로그아웃 후 항상 계정 선택 화면 표시
+        },
+      },
     }),
   ],
   pages: {
